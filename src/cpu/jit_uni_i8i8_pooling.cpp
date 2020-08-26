@@ -800,14 +800,14 @@ void jit_uni_i8i8_pooling_fwd_ker_t<avx512_core>::init_mask() {
         w_tail_aarch64[2] = (uint16_t) ((tail_aarch64>>32) & 0x000000000000ffff);
         w_tail_aarch64[3] = (uint16_t) ((tail_aarch64>>48) & 0x000000000000ffff);
     
-        CodeGeneratorAArch64::movz(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[0]), 0 );
-        CodeGeneratorAArch64::movk(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[1]), 16);
-        CodeGeneratorAArch64::movk(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[2]), 32);
-        CodeGeneratorAArch64::movk(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[3]), 48);
-        CodeGeneratorAArch64::sub(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
-        CodeGeneratorAArch64::str(Xbyak_aarch64::XReg(reg_mask.getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
-        CodeGeneratorAArch64::ldr(Xbyak_aarch64::PReg(mask(ll).getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
-        CodeGeneratorAArch64::add(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
+        xa_->movz(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[0]), 0 );
+        xa_->movk(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[1]), 16);
+        xa_->movk(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[2]), 32);
+        xa_->movk(Xbyak_aarch64::XReg(reg_mask.getIdx()), uint64_t(w_tail_aarch64[3]), 48);
+        xa_->sub(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
+        xa_->str(Xbyak_aarch64::XReg(reg_mask.getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
+        xa_->ldr(Xbyak_aarch64::PReg(mask(ll).getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
+        xa_->add(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
     }
 #else
     for (int ll = 0; ll < max_num_ll; ll++) {

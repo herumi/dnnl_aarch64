@@ -53,7 +53,7 @@ namespace mkldnn {
 namespace impl {
 namespace cpu {
 
-#define CGA64 CodeGeneratorAArch64
+
 namespace xa = Xbyak::Xbyak_aarch64;
 /* Get vector offsets, ofs / VL(VL: 512bits = 64Bytes) */
 #define VL_OFS(ofs) ((ofs)>>6)
@@ -160,10 +160,10 @@ private:
             }
 
             if((ofs <= PRFMMAX) && (ofs >= 0)) {
-                CGA64::prfm(op, xa::ptr(in, static_cast<int32_t>(ofs)));
+                xa_->prfm(op, xa::ptr(in, static_cast<int32_t>(ofs)));
             }else{
-                CGA64::add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
-                CGA64::prfm(op, xa::ptr(reg_tmp_addr));
+                xa_->add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
+                xa_->prfm(op, xa::ptr(reg_tmp_addr));
             }
         } else {
             xa::PrfopSve op_sve = xa::PLDL1KEEP_SVE;
@@ -176,10 +176,10 @@ private:
 
             if((VL_OFS(ofs) <= PRFWMAX) &&
                (VL_OFS(ofs) >= (-1 * PRFWMAX - 1))) {
-                CGA64::prfw(op_sve, reg_p_all_ones, xa::ptr(in, static_cast<int32_t>(VL_OFS(ofs))));
+                xa_->prfw(op_sve, reg_p_all_ones, xa::ptr(in, static_cast<int32_t>(VL_OFS(ofs))));
             }else{
-                CGA64::add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
-                CGA64::prfw(op_sve, reg_p_all_ones, xa::ptr(reg_tmp_addr));
+                xa_->add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
+                xa_->prfw(op_sve, reg_p_all_ones, xa::ptr(reg_tmp_addr));
             }
         }
     }
@@ -368,10 +368,10 @@ private:
             }
 
             if((ofs <= PRFMMAX) && (ofs >= 0)) {
-              CGA64::prfm(op, xa::ptr(in, static_cast<int32_t>(ofs)));
+              xa_->prfm(op, xa::ptr(in, static_cast<int32_t>(ofs)));
             }else{
-              CGA64::add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
-              CGA64::prfm(op, xa::ptr(reg_tmp_addr));
+              xa_->add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
+              xa_->prfm(op, xa::ptr(reg_tmp_addr));
             }
         } else {
             xa::PrfopSve op_sve;
@@ -384,10 +384,10 @@ private:
 
             if((VL_OFS(ofs) <= PRFWMAX) &&
                (VL_OFS(ofs) >= (-1 * PRFWMAX - 1))) {
-                CGA64::prfw(op_sve, reg_p_all_ones, xa::ptr(in, static_cast<int32_t>(VL_OFS(ofs))));
+                xa_->prfw(op_sve, reg_p_all_ones, xa::ptr(in, static_cast<int32_t>(VL_OFS(ofs))));
             }else{
-                CGA64::add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
-                CGA64::prfw(op_sve, reg_p_all_ones, xa::ptr(reg_tmp_addr));
+                xa_->add_imm(reg_tmp_addr, in, ofs, reg_tmp_imm);
+                xa_->prfw(op_sve, reg_p_all_ones, xa::ptr(reg_tmp_addr));
             }
         }
     }
@@ -508,10 +508,10 @@ private:
             }
 
             if((ofs <= PRFMMAX) && (ofs >= 0)) {
-                CGA64::prfm(op, xa::ptr(in, static_cast<int32_t>(ofs)));
+                xa_->prfm(op, xa::ptr(in, static_cast<int32_t>(ofs)));
             }else{
-                CGA64::add_imm(reg_add_tmp, in, ofs, reg_tmp_imm);
-                CGA64::prfm(op, xa::ptr(reg_add_tmp));
+                xa_->add_imm(reg_add_tmp, in, ofs, reg_tmp_imm);
+                xa_->prfm(op, xa::ptr(reg_add_tmp));
             }
         } else {
             xa::PrfopSve op_sve;
@@ -524,10 +524,10 @@ private:
 
             if((VL_OFS(ofs) <= PRFWMAX) &&
                (VL_OFS(ofs) >= (-1 * PRFWMAX - 1))) {
-                CGA64::prfw(op_sve, reg_p_all_ones, xa::ptr(in, static_cast<int32_t>(VL_OFS(ofs))));
+                xa_->prfw(op_sve, reg_p_all_ones, xa::ptr(in, static_cast<int32_t>(VL_OFS(ofs))));
             }else{
-                CGA64::add_imm(reg_add_tmp, in, ofs, reg_tmp_imm);
-                CGA64::prfw(op_sve, reg_p_all_ones, xa::ptr(reg_add_tmp));
+                xa_->add_imm(reg_add_tmp, in, ofs, reg_tmp_imm);
+                xa_->prfw(op_sve, reg_p_all_ones, xa::ptr(reg_add_tmp));
             }
         }
     }

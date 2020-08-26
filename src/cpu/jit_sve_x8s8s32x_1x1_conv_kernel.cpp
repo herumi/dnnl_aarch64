@@ -54,7 +54,7 @@ using namespace mkldnn::impl::utils;
 
 using namespace Xbyak;
 
-#define CGA64 CodeGeneratorAArch64
+
 namespace xa = Xbyak::Xbyak_aarch64;
 
 bool jit_sve_x8s8s32x_1x1_conv_kernel::maybe_eltwise(int position)
@@ -132,7 +132,7 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::cvt2ps(data_type_t type_in,
     default: assert(!"unsupported data type");
     }
     if (type_in != data_type::f32)
-        CGA64::scvtf(xa::ZRegS(zmm_in.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(zmm_in.getIdx())); //< vcvtdq2ps(zmm_in, zmm_in);
+        xa_->scvtf(xa::ZRegS(zmm_in.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(zmm_in.getIdx())); //< vcvtdq2ps(zmm_in, zmm_in);
 }
 
 void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
@@ -195,7 +195,7 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
             assert(!"unimplemented"); 
         else {
           if((-0x40 <= re) && (re < 0x40) && ((re%4) == 0))
-              CGA64::ld1rw(xa::ZRegS(bcast_reg.getIdx()), xa::PReg(vmask.getIdx()), xa::ptr(xa::XReg(base.getIdx()), static_cast<int32_t>(re)));
+              xa_->ld1rw(xa::ZRegS(bcast_reg.getIdx()), xa::PReg(vmask.getIdx()), xa::ptr(xa::XReg(base.getIdx()), static_cast<int32_t>(re)));
           else {
               auto reg_tmp_adr = ((i_ur % 4) == 0)? reg_tmp0_adr
                                  : ((i_ur % 4) == 1)? reg_tmp1_adr
@@ -206,7 +206,7 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
                                  : ((i_ur % 4) == 2)? reg_tmp2_imm
                                                    : reg_tmp3_imm;
               add_imm(reg_tmp_adr, xa::XReg(base.getIdx()), re, reg_tmp_imm);
-              CGA64::ld1rw(xa::ZRegS(bcast_reg.getIdx()), xa::PReg(vmask.getIdx()), xa::ptr(reg_tmp_adr));
+              xa_->ld1rw(xa::ZRegS(bcast_reg.getIdx()), xa::PReg(vmask.getIdx()), xa::ptr(reg_tmp_adr));
           }
         }
     };
@@ -273,7 +273,7 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
             vmovups(zmm_scale, scale_ptr(i_load));
             for (int i_ur = 0; i_ur < ur; ++i_ur) {
                 auto r = vreg_accum(i_load, i_ur);
-                CGA64::scvtf(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx())); //< vcvtdq2ps(r, r);
+                xa_->scvtf(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx())); //< vcvtdq2ps(r, r);
                 if (!jcp.signed_input)
                     vsubps(r, r, zmm_comp);
                 if (jcp.with_bias)
@@ -282,7 +282,7 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
                 zmm_t mask_zmm = mask_flag ? r | ktail_mask | T_z : r;
                 if(mask_flag) assert(!"unimplemented");
                 // vmulps(mask_zmm, r, scale_ptr(i_load));
-                CGA64::fmul(xa::ZRegS(mask_zmm.getIdx()), xa::ZRegS(r.getIdx()), xa::ZRegS(zmm_scale.getIdx()));
+                xa_->fmul(xa::ZRegS(mask_zmm.getIdx()), xa::ZRegS(r.getIdx()), xa::ZRegS(zmm_scale.getIdx()));
             }
         }
 
@@ -324,12 +324,12 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
                 if (jcp.dst_dt != data_type::f32) {
                     if (attr_.round_mode_ == round_mode::nearest) {
                         // vcvtps2dq(r | T_rn_sae, r);
-                        CGA64::frintn(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
-                        CGA64::fcvtzs(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
+                        xa_->frintn(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
+                        xa_->fcvtzs(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
                     } else if (attr_.round_mode_ == round_mode::down) {
                         // vcvtps2dq(r | T_rd_sae, r);
-                        CGA64::frintm(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
-                        CGA64::fcvtzs(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
+                        xa_->frintm(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
+                        xa_->fcvtzs(xa::ZRegS(r.getIdx()), xa::PReg(vmask.getIdx()), xa::ZRegS(r.getIdx()));
                     } else
                         assert(!"unimplemented");
                 }
@@ -375,14 +375,14 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
                     vmovups(output_ptr(i_load, i_ur), r_zmm); break;
                 case data_type::s8:
                     // vpmovsdb(output_ptr(i_load, i_ur), r_zmm); break;
-                    CGA64::smin(xa::ZRegS(r_zmm.getIdx()), 127);
-                    CGA64::smax(xa::ZRegS(r_zmm.getIdx()), -128);
-                    CGA64::st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
+                    xa_->smin(xa::ZRegS(r_zmm.getIdx()), 127);
+                    xa_->smax(xa::ZRegS(r_zmm.getIdx()), -128);
+                    xa_->st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
                     break;
                 case data_type::u8:
                     // vpmovusdb(output_ptr(i_load, i_ur), r_zmm); break;
-                    CGA64::umin(xa::ZRegS(r_zmm.getIdx()), 255);
-                    CGA64::st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
+                    xa_->umin(xa::ZRegS(r_zmm.getIdx()), 255);
+                    xa_->st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
                     break;
                 default: assert(!"unknown dst_dt");
                 }
@@ -395,7 +395,7 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::reduce_loop(int load_loop_blk,
 
     auto compute = [=](Zmm vreg_acc, Zmm vreg_wei, Zmm vreg_src) {
         // vpdpbusd(vreg_acc, vreg_src, vreg_wei);
-        CGA64::sdot(xa::ZRegS(vreg_acc.getIdx()), xa::ZRegB(vreg_src.getIdx()), xa::ZRegB(vreg_wei.getIdx()));
+        xa_->sdot(xa::ZRegS(vreg_acc.getIdx()), xa::ZRegB(vreg_src.getIdx()), xa::ZRegB(vreg_wei.getIdx()));
     };
 
     auto fma_block = [=](bool last_block) {
@@ -513,7 +513,7 @@ void jit_sve_x8s8s32x_1x1_conv_kernel::generate()
 {
     preamble();
 
-    CGA64::ptrue( xa::PRegB(vmask.getIdx()) );
+    xa_->ptrue( xa::PRegB(vmask.getIdx()) );
 
     xor_(reg_scratch, reg_scratch);
     Reg16 _t = reg_scratch.cvt16();

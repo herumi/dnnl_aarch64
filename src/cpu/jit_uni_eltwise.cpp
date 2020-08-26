@@ -75,9 +75,9 @@ void jit_uni_eltwise_injector_f32<isa>::injector_preamble(size_t start_idx,
     }
 
 #ifdef DNNL_NATIVE_JIT_AARCH64
-    h->CodeGeneratorAArch64::sub(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
-    h->CodeGeneratorAArch64::str(p, Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
-    h->CodeGeneratorAArch64::ptrue(p.s, Xbyak::Xbyak_aarch64::ALL);
+    h->xa_->sub(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
+    h->xa_->str(p, Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+    h->xa_->ptrue(p.s, Xbyak::Xbyak_aarch64::ALL);
 #endif
 
     assign_regs();
@@ -136,8 +136,8 @@ void jit_uni_eltwise_injector_f32<isa>::injector_preamble_tail(size_t start_idx)
 template <cpu_isa_t isa>
 void jit_uni_eltwise_injector_f32<isa>::injector_postamble() {
 #ifdef DNNL_NATIVE_JIT_AARCH64
-    h->CodeGeneratorAArch64::ldr(p, Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
-    h->CodeGeneratorAArch64::add(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
+    h->xa_->ldr(p, Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+    h->xa_->add(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
 #endif
 
     if (!save_state_) return;
@@ -201,16 +201,16 @@ void jit_uni_eltwise_injector_f32<avx512_common>::assign_reg_values() {
     assert(eluOffset % 4 == 0);
     assert(eluOffset < (uint32_t(1) << 11));
     
-    h->CodeGeneratorAArch64::add(addrReg, tblPtr, eluOffset);
-    h->CodeGeneratorAArch64::ld1rw(ZRegS(log2.getIdx()), p/T_z, ptr(addrReg, 0));
-    h->CodeGeneratorAArch64::ld1rw(ZRegS(log2_e.getIdx()), p/T_z, ptr(addrReg, 4));
+    h->xa_->add(addrReg, tblPtr, eluOffset);
+    h->xa_->ld1rw(ZRegS(log2.getIdx()), p/T_z, ptr(addrReg, 0));
+    h->xa_->ld1rw(ZRegS(log2_e.getIdx()), p/T_z, ptr(addrReg, 4));
 
     for (int i = 0; i < static_cast<int>(expN); i++) {
-        h->CodeGeneratorAArch64::ld1rw(ZRegS(expCoeff[i].getIdx()), p/T_z, ptr(addrReg, 2*4 + 4*i));
+        h->xa_->ld1rw(ZRegS(expCoeff[i].getIdx()), p/T_z, ptr(addrReg, 2*4 + 4*i));
     }
     // geluC1, geluC2
-    h->CodeGeneratorAArch64::ld1rw(ZRegS(geluC1.getIdx()), p/T_z, ptr(addrReg, 7 * 4));
-    h->CodeGeneratorAArch64::ld1rw(ZRegS(geluC2.getIdx()), p/T_z, ptr(addrReg, 8 * 4));
+    h->xa_->ld1rw(ZRegS(geluC1.getIdx()), p/T_z, ptr(addrReg, 7 * 4));
+    h->xa_->ld1rw(ZRegS(geluC2.getIdx()), p/T_z, ptr(addrReg, 8 * 4));
 }
 #endif //#ifdef DNNL_INDIRECT_JIT_AARCH64
 
@@ -279,18 +279,18 @@ void expSVE(T *h, const Z& src, const Z& t1, const Z& t2, const P& p, const Z& l
 {
     using namespace Xbyak::Xbyak_aarch64;
 
-    h->CodeGeneratorAArch64::fmul(src, src, log2_e);
-    h->CodeGeneratorAArch64::frintn(t2, p/T_m, src); // rounding : float -> float
-    h->CodeGeneratorAArch64::fcvtzs(t1, p/T_m, t2); // float -> int
-    h->CodeGeneratorAArch64::fsub(t2, src, t2);
-    h->CodeGeneratorAArch64::fmul(t2, t2, log2);
-    h->CodeGeneratorAArch64::movprfx(src, p, coeff[4]);
-    h->CodeGeneratorAArch64::fmad(src, p, t2, coeff[3]);
-    h->CodeGeneratorAArch64::fmad(src, p, t2, coeff[2]);
-    h->CodeGeneratorAArch64::fmad(src, p, t2, coeff[1]);
-    h->CodeGeneratorAArch64::fmad(src, p, t2, coeff[0]);
-    h->CodeGeneratorAArch64::fmad(src, p, t2, coeff[0]);
-    h->CodeGeneratorAArch64::fscale(src, p, t1); // src *= 2^t1
+    h->xa_->fmul(src, src, log2_e);
+    h->xa_->frintn(t2, p/T_m, src); // rounding : float -> float
+    h->xa_->fcvtzs(t1, p/T_m, t2); // float -> int
+    h->xa_->fsub(t2, src, t2);
+    h->xa_->fmul(t2, t2, log2);
+    h->xa_->movprfx(src, p, coeff[4]);
+    h->xa_->fmad(src, p, t2, coeff[3]);
+    h->xa_->fmad(src, p, t2, coeff[2]);
+    h->xa_->fmad(src, p, t2, coeff[1]);
+    h->xa_->fmad(src, p, t2, coeff[0]);
+    h->xa_->fmad(src, p, t2, coeff[0]);
+    h->xa_->fscale(src, p, t1); // src *= 2^t1
 }
 
 template <>
@@ -344,7 +344,7 @@ void jit_uni_eltwise_injector_f32<isa>::relu_zero_ns_compute_vector(
 template <cpu_isa_t isa>
 void jit_uni_eltwise_injector_f32<isa>::elu_compute_vector(const Vmm &vmm_src) {
     const int alpha_off = 25, zero_off = 26;
-    Xbyak::Xbyak_aarch64::LabelAArch64 l0;
+    xa::Label l0;
     
     // compute exponent
     h->uni_vmovups(vmm_aux3, vmm_src);
@@ -385,19 +385,19 @@ void jit_uni_eltwise_injector_f32<avx512_common>::tanh_compute_vector(const Vmm 
         coeff[i] = ZRegS(expCoeff[i].getIdx());
     }
     // 2x
-    h->CodeGeneratorAArch64::fadd(src, src, src);
+    h->xa_->fadd(src, src, src);
     // exp(2x)
 	expSVE(h, src, aux1, aux2, p, tmpLog2, tmpLog2_e, coeff);
     // 1+exp(2x)
-    h->CodeGeneratorAArch64::fadd(src, src, coeff[0]); // 1
+    h->xa_->fadd(src, src, coeff[0]); // 1
     // 1/(1+exp(2x))
-    h->CodeGeneratorAArch64::frecpe(aux1, src);
-    h->CodeGeneratorAArch64::frecps(src, src, aux1);
-    h->CodeGeneratorAArch64::fmul(src, src, aux1);
+    h->xa_->frecpe(aux1, src);
+    h->xa_->frecps(src, src, aux1);
+    h->xa_->fmul(src, src, aux1);
     // 2/(1+exp(2x))
-    h->CodeGeneratorAArch64::fadd(src, src, src);
+    h->xa_->fadd(src, src, src);
     // 1-2/(1+exp(2x))
-    h->CodeGeneratorAArch64::fsub(src, coeff[0], src);
+    h->xa_->fsub(src, coeff[0], src);
 }
 #endif //#ifdef DNNL_INDIRECT_JIT_AARCH64
 
@@ -494,8 +494,8 @@ void jit_uni_eltwise_injector_f32<isa>::tanh_compute_vector(const Vmm &vmm_src)
     h->uni_vmovups(h->ptr[h->rsp + 3 * vlen], vmm_src);
     if (isa == avx512_common) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-        h->Xbyak_aarch64::CodeGeneratorAArch64::sub(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
-        h->Xbyak_aarch64::CodeGeneratorAArch64::str(Xbyak_aarch64::PReg(k_mask.getIdx()), Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+        h->xa_->sub(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
+        h->xa_->str(xa_::PReg(k_mask.getIdx()), Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
 #else
         h->kmovw(h->ptr[h->rsp + 4 * vlen], k_mask);
 #endif
@@ -509,8 +509,8 @@ void jit_uni_eltwise_injector_f32<isa>::tanh_compute_vector(const Vmm &vmm_src)
     h->uni_vmovups(vmm_src, h->ptr[h->rsp + 3 * vlen]);
     if (isa == avx512_common) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-        h->Xbyak_aarch64::CodeGeneratorAArch64::ldr(Xbyak_aarch64::PReg(k_mask.getIdx()), Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
-        h->Xbyak_aarch64::CodeGeneratorAArch64::add(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
+        h->xa_->ldr(xa_::PReg(k_mask.getIdx()), Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+        h->xa_->add(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
 #else
         h->kmovw(k_mask, h->ptr[h->rsp + 4 * vlen]);
 #endif
@@ -570,29 +570,29 @@ void jit_uni_eltwise_injector_f32<avx512_common>::gelu_compute_vector(const Vmm 
     ZRegS C2(geluC2.getIdx());
 
     // x^2
-    h->CodeGeneratorAArch64::fmul(aux3, src, src);
-    h->CodeGeneratorAArch64::fmad(aux3, p, C2, C1);
+    h->xa_->fmul(aux3, src, src);
+    h->xa_->fmad(aux3, p, C2, C1);
     // Cx
-    h->CodeGeneratorAArch64::fmul(aux3, aux3, src);
+    h->xa_->fmul(aux3, aux3, src);
     // exp(Cx)
 	expSVE(h, aux3, aux1, aux2, p, tmpLog2, tmpLog2_e, coeff);
     // 1 + exp(Cx)
-    h->CodeGeneratorAArch64::fadd(aux3, aux3, coeff[0]);
+    h->xa_->fadd(aux3, aux3, coeff[0]);
 #if 1
     // x / (1 + exp(Cx))
-    h->CodeGeneratorAArch64::movprfx(aux1, p, src);
-    h->CodeGeneratorAArch64::fdiv(aux1, p, aux3);
+    h->xa_->movprfx(aux1, p, src);
+    h->xa_->fdiv(aux1, p, aux3);
     // G(x) = x - x/(1 + exp(Cx))
-    h->CodeGeneratorAArch64::fsub(src, src, aux1);
+    h->xa_->fsub(src, src, aux1);
 #else
     // 1 / (1 + exp(Cx))
-    h->CodeGeneratorAArch64::frecpe(aux1, aux3);
-    h->CodeGeneratorAArch64::frecps(aux3, aux3, aux1);
-    h->CodeGeneratorAArch64::fmul(aux3, aux3, aux1);
+    h->xa_->frecpe(aux1, aux3);
+    h->xa_->frecps(aux3, aux3, aux1);
+    h->xa_->fmul(aux3, aux3, aux1);
     // 1 - 1/(1 + exp(Cx))
-    h->CodeGeneratorAArch64::fsub(aux3, coeff[0], aux3);
+    h->xa_->fsub(aux3, coeff[0], aux3);
     // G(x)
-    h->CodeGeneratorAArch64::fmul(src, src, aux3);
+    h->xa_->fmul(src, src, aux3);
 #endif
 }
 #endif //#ifdef DNNL_INDIRECT_JIT_AARCH64
@@ -790,13 +790,13 @@ void jit_uni_eltwise_injector_f32<avx512_common>::logistic_compute_vector(
     // exp(x)
 	expSVE(h, src, aux1, aux2, p, tmpLog2, tmpLog2_e, coeff);
     // exp(x) + 1
-    h->CodeGeneratorAArch64::fadd(aux1, src, coeff[0]); // 1
+    h->xa_->fadd(aux1, src, coeff[0]); // 1
     // 1/(exp(x) + 1)
-    h->CodeGeneratorAArch64::frecpe(aux2, aux1);
-    h->CodeGeneratorAArch64::frecps(aux1, aux1, aux2);
-    h->CodeGeneratorAArch64::fmul(aux1, aux1, aux2);
+    h->xa_->frecpe(aux2, aux1);
+    h->xa_->frecps(aux1, aux1, aux2);
+    h->xa_->fmul(aux1, aux1, aux2);
     // exp(x)/(exp(x) + 1)
-    h->CodeGeneratorAArch64::fsub(src, coeff[0], aux1);
+    h->xa_->fsub(src, coeff[0], aux1);
 }
 #endif
 
@@ -1134,9 +1134,9 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
                     // reg_from is xreg(0)
                     if((i*shift) != 0){
                         add_imm(xa::XReg(29), xa::XReg(0), i*shift, xa::XReg(30)); 
-                        CGA64::ldr(xa::ZReg(i+1), xa::ptr(xa::XReg(29)));
+                        xa_->ldr(xa::ZReg(i+1), xa::ptr(xa::XReg(29)));
                     }else{
-                        CGA64::ldr(xa::ZReg(i+1), xa::ptr(xa::XReg(0)));
+                        xa_->ldr(xa::ZReg(i+1), xa::ptr(xa::XReg(0)));
                     }
 #else // #ifdef __ARM_ARCH
                     movss(Xmm(i + 1), addr_fwd); // target?
@@ -1152,9 +1152,9 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
                     // reg_for_com is xreg(2)
                     if((i*shift) != 0){
                         add_imm(xa::XReg(29), xa::XReg(2), i*shift, xa::XReg(30)); 
-                        CGA64::ldr(xa::ZReg(uf+i+1), xa::ptr(xa::XReg(29)));
+                        xa_->ldr(xa::ZReg(uf+i+1), xa::ptr(xa::XReg(29)));
                     }else{
-                        CGA64::ldr(xa::ZReg(uf+i+1), xa::ptr(xa::XReg(2)));
+                        xa_->ldr(xa::ZReg(uf+i+1), xa::ptr(xa::XReg(2)));
                     }
 #else // #ifdef __ARM_ARCH
                         movss(Xmm(uf + i + 1), addr_bwd); // target?
@@ -1195,14 +1195,14 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
                     if (is_bwd()){
 #ifdef __ARM_ARCH
                         // k_mask is PReg(1)
-                        CGA64::fcmgt(xa::PRegS(1), xa::PReg(5)/xa::T_z, xa::ZRegS(uf+i+1), xa::ZRegS(31));
+                        xa_->fcmgt(xa::PRegS(1), xa::PReg(5)/xa::T_z, xa::ZRegS(uf+i+1), xa::ZRegS(31));
 #else // #ifdef __ARM_ARCH
                         vcmpps(k_mask, Vmm(uf + i + 1), vmm_zero, _cmp_nle_us); // target
 #endif // #ifdef __ARM_ARCH
                     }else{
 #ifdef __ARM_ARCH
                         // k_mask is PReg(1)
-                        CGA64::fcmgt(xa::PRegS(1), xa::PReg(5)/xa::T_z, xa::ZRegS(i+1), xa::ZRegS(31));
+                        xa_->fcmgt(xa::PRegS(1), xa::PReg(5)/xa::T_z, xa::ZRegS(i+1), xa::ZRegS(31));
 #else // #ifdef __ARM_ARCH
                         vcmpps(k_mask, Vmm(i + 1), vmm_zero, _cmp_nle_us); // target
 #endif // #ifdef __ARM_ARCH
@@ -1236,9 +1236,9 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
                     // reg_to is xreg(8)
                     if((i*shift) != 0){
                         add_imm(xa::XReg(29), xa::XReg(8), i*shift, xa::XReg(30)); 
-                        CGA64::st1w(xa::ZRegS(2*uf+i+1), xa::PReg(6), xa::ptr(xa::XReg(29)));
+                        xa_->st1w(xa::ZRegS(2*uf+i+1), xa::PReg(6), xa::ptr(xa::XReg(29)));
                     }else{
-                        CGA64::st1w(xa::ZRegS(2*uf+i+1), xa::PReg(6), xa::ptr(xa::XReg(8)));
+                        xa_->st1w(xa::ZRegS(2*uf+i+1), xa::PReg(6), xa::ptr(xa::XReg(8)));
 
                     }
 #else // #ifdef __ARM_ARCH
@@ -1295,12 +1295,12 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
 
 #ifdef __ARM_ARCH
         // Push p5, 6
-	  CGA64::sub(x22, x22, 0x8);
-	  CGA64::str(p5, xa::ptr(x22));
-	  CGA64::sub(x22, x22, 0x8);
-	  CGA64::str(p6, xa::ptr(x22));
-	  CGA64::ptrue(xa::PRegS(5));
-	  CGA64::ptrue(xa::PRegS(6), xa::VL1);
+	  xa_->sub(x22, x22, 0x8);
+	  xa_->str(p5, xa::ptr(x22));
+	  xa_->sub(x22, x22, 0x8);
+	  xa_->str(p6, xa::ptr(x22));
+	  xa_->ptrue(xa::PRegS(5));
+	  xa_->ptrue(xa::PRegS(6), xa::VL1);
 #endif // ifdef ARM_ARCH
 
 	  if (is_bf16_) {
@@ -1330,8 +1330,8 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
 	  mov(imm_addr64, float2int(desc.alpha));
 #ifdef __ARM_ARCH
         // imm_addr63 is xreg(3)
-	  CGA64::fmov(xa::ZRegS(14));
-	  CGA64::mov(xa::ZRegD(14), xa::PReg(6)/ xa::T_m, xa::XReg(3));
+	  xa_->fmov(xa::ZRegS(14));
+	  xa_->mov(xa::ZRegD(14), xa::PReg(6)/ xa::T_m, xa::XReg(3));
 #else // #ifdef __ARM_ARCH
 	  movq(xmm_ns, imm_addr64);
 #endif // #ifdef __ARM_ARCH
@@ -1360,10 +1360,10 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
 
 #ifdef __ARM_ARCH
         // Pop p5, 6
-	  CGA64::ldr(p5, xa::ptr(x22));
-	  CGA64::add(x22, x22, 0x8);
-	  CGA64::ldr(p6, xa::ptr(x22));
-	  CGA64::add(x22, x22, 0x8);
+	  xa_->ldr(p5, xa::ptr(x22));
+	  xa_->add(x22, x22, 0x8);
+	  xa_->ldr(p6, xa::ptr(x22));
+	  xa_->add(x22, x22, 0x8);
 #endif // ifdef JIT_DIRECT
 
 	  clearAll1Preg0_7();
@@ -1373,12 +1373,12 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
 	preamble();
 #ifdef __ARM_ARCH
         // Push p5, 6
-        CGA64::sub(x22, x22, 0x8);
-        CGA64::str(p5, xa::ptr(x22));
-        CGA64::sub(x22, x22, 0x8);
-        CGA64::str(p6, xa::ptr(x22));
-        CGA64::ptrue(xa::PRegS(5));
-        CGA64::ptrue(xa::PRegS(6), xa::VL1);
+        xa_->sub(x22, x22, 0x8);
+        xa_->str(p5, xa::ptr(x22));
+        xa_->sub(x22, x22, 0x8);
+        xa_->str(p6, xa::ptr(x22));
+        xa_->ptrue(xa::PRegS(5));
+        xa_->ptrue(xa::PRegS(6), xa::VL1);
 #endif // ifdef ARM_ARCH
 
         if (is_bf16_) {
@@ -1408,8 +1408,8 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
         mov(imm_addr64, float2int(desc.alpha));
 #ifdef __ARM_ARCH
         // imm_addr63 is xreg(3)
-        CGA64::fmov(xa::ZRegS(14));
-        CGA64::mov(xa::ZRegD(14), xa::PReg(6)/ xa::T_m, xa::XReg(3));
+        xa_->fmov(xa::ZRegS(14));
+        xa_->mov(xa::ZRegD(14), xa::PReg(6)/ xa::T_m, xa::XReg(3));
 #else // #ifdef __ARM_ARCH
         movq(xmm_ns, imm_addr64);
 #endif // #ifdef __ARM_ARCH
@@ -1438,10 +1438,10 @@ struct jit_uni_relu_kernel_f32 : public jit_uni_eltwise_kernel_f32,
 
 #ifdef __ARM_ARCH
         // Pop p5, 6
-        CGA64::ldr(p5, xa::ptr(x22));
-        CGA64::add(x22, x22, 0x8);
-        CGA64::ldr(p6, xa::ptr(x22));
-        CGA64::add(x22, x22, 0x8);
+        xa_->ldr(p5, xa::ptr(x22));
+        xa_->add(x22, x22, 0x8);
+        xa_->ldr(p6, xa::ptr(x22));
+        xa_->add(x22, x22, 0x8);
 #endif // ifdef JIT_DIRECT
 
 #endif

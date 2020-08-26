@@ -51,7 +51,7 @@ using namespace mkldnn::impl::memory_tracking::names;
 using namespace mkldnn::impl::utils;
 using namespace Xbyak;
 
-#define CGA64 CodeGeneratorAArch64
+
 namespace xa = Xbyak::Xbyak_aarch64;
 
 namespace {
@@ -134,7 +134,7 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::cvt2ps(data_type_t type_in,
     default: assert(!"unsupported data type");
     }
     if (type_in != data_type::f32)
-        CGA64::scvtf(xa::ZRegS(vmm_in.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_in.getIdx())); //< vcvtdq2ps(vmm_in, vmm_in);
+        xa_->scvtf(xa::ZRegS(vmm_in.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_in.getIdx())); //< vcvtdq2ps(vmm_in, vmm_in);
 }
 
 template<typename Vmm>
@@ -195,7 +195,7 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::store_output(
             if (jcp.is_fast_depthwise)
                 vpermd(zmm_out(j, k), zmm_permute, zmm_out(j, k));
             // vcvtdq2ps(vmm, vmm);
-            CGA64::scvtf(xa::ZRegS(vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm.getIdx()));
+            xa_->scvtf(xa::ZRegS(vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm.getIdx()));
             if (!jcp.signed_input)
                 vsubps(vmm, vmm, vmm_comp);
             if (jcp.with_bias)
@@ -241,9 +241,9 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::store_output(
             if (jcp.dst_dt == data_type::u8) {
                 // vpxord(vmm_zero, vmm_zero, vmm_zero);
                 // vmaxps(vmm, vmm_zero, vmm);
-                CGA64::eor(xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()));
-                CGA64::fmaxnm(xa::ZRegS(vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
-                CGA64::fmax(xa::ZRegS(vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
+                xa_->eor(xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()));
+                xa_->fmaxnm(xa::ZRegS(vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
+                xa_->fmax(xa::ZRegS(vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
             }
 
             if (jcp.dst_dt != data_type::f32) {
@@ -255,12 +255,12 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::store_output(
                 Zmm zmm = zmm_out(j, k);
                 if (attr_.round_mode_ == round_mode::nearest) {
                     // vcvtps2dq(zmm | T_rn_sae, zmm);
-                    CGA64::frintn(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
-                    CGA64::fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->frintn(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
                 } else if (attr_.round_mode_ == round_mode::down) {
                     // vcvtps2dq(zmm | T_rd_sae, zmm);
-                    CGA64::frintm(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
-                    CGA64::fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->frintm(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
                 } else {
                     assert(!"unimplemented");
                 }
@@ -310,14 +310,14 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::store_output(
             case data_type::s32: vmovups(addr, r_vmm); break;
             // case data_type::s8: vpmovsdb(addr, r_vmm); break;
             case data_type::s8: 
-                CGA64::smin(xa::ZRegS(r_vmm.getIdx()), 127);
-                CGA64::smax(xa::ZRegS(r_vmm.getIdx()), -128);
-                CGA64::st1b(xa::ZRegS(r_vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(reg_tmp_adr));
+                xa_->smin(xa::ZRegS(r_vmm.getIdx()), 127);
+                xa_->smax(xa::ZRegS(r_vmm.getIdx()), -128);
+                xa_->st1b(xa::ZRegS(r_vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(reg_tmp_adr));
                 break;
             // case data_type::u8: //< vpmovusdb(addr, r_vmm); break;
             case data_type::u8:
-                CGA64::umin(xa::ZRegS(r_vmm.getIdx()), 255);
-                CGA64::st1b(xa::ZRegS(r_vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(reg_tmp_adr));
+                xa_->umin(xa::ZRegS(r_vmm.getIdx()), 255);
+                xa_->st1b(xa::ZRegS(r_vmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(reg_tmp_adr));
                 break;
             default: assert(!"unknown dst_dt");
             }
@@ -372,7 +372,7 @@ void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::store_output(
             if (jcp.is_fast_depthwise)
                 vpermd(zmm_out(j, k), zmm_permute, zmm_out(j, k));
             // vcvtdq2ps(zmm, zmm);
-            CGA64::scvtf(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+            xa_->scvtf(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
             if (!jcp.signed_input)
                 vsubps(zmm, zmm, vmm_comp);
             if (jcp.with_bias)
@@ -383,8 +383,8 @@ void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::store_output(
                 // vmulps(zmm_k, zmm, vmm_comp);
                 vmulps(zmm, zmm, vmm_comp);
                 if (mask_flag) {
-                    CGA64::not_(xa::PRegB(mask_tmp.getIdx()), xa::PRegB(mask_all_one.getIdx()), xa::PRegB(ktail_mask.getIdx()));
-                    CGA64::mov(xa::ZRegS(zmm.getIdx()),xa::PReg(mask_tmp.getIdx())/xa::T_m, 0);
+                    xa_->not_(xa::PRegB(mask_tmp.getIdx()), xa::PRegB(mask_all_one.getIdx()), xa::PRegB(ktail_mask.getIdx()));
+                    xa_->mov(xa::ZRegS(zmm.getIdx()),xa::PReg(mask_tmp.getIdx())/xa::T_m, 0);
                 }
             } else {
                 // vmulps(zmm_k, zmm,
@@ -392,8 +392,8 @@ void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::store_output(
                 vmulps(zmm, zmm,
                        SVE_compress_addr(reg_ptr_scales, scale_offset));
                 if (mask_flag) {
-                    CGA64::not_(xa::PRegB(mask_tmp.getIdx()), xa::PRegB(mask_all_one.getIdx()), xa::PRegB(ktail_mask.getIdx()));
-                    CGA64::mov(xa::ZRegS(zmm.getIdx()),xa::PReg(mask_tmp.getIdx())/xa::T_m, 0);
+                    xa_->not_(xa::PRegB(mask_tmp.getIdx()), xa::PRegB(mask_all_one.getIdx()), xa::PRegB(ktail_mask.getIdx()));
+                    xa_->mov(xa::ZRegS(zmm.getIdx()),xa::PReg(mask_tmp.getIdx())/xa::T_m, 0);
                 }
             }
         }
@@ -429,9 +429,9 @@ void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::store_output(
             if (jcp.dst_dt == data_type::u8) {
                 // vpxord(zmm_zero, zmm_zero, zmm_zero);
                 // vmaxps(zmm, vmm_zero, zmm);
-                CGA64::eor(xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()));
-                CGA64::fmaxnm(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
-                CGA64::fmax(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
+                xa_->eor(xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()), xa::ZRegD(vmm_zero.getIdx()));
+                xa_->fmaxnm(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
+                xa_->fmax(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(vmm_zero.getIdx()));
             }
 
             if (jcp.dst_dt != data_type::f32) {
@@ -443,12 +443,12 @@ void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::store_output(
                 Zmm zmm = zmm_out(j, k);
                 if (attr_.round_mode_ == round_mode::nearest) {
                     // vcvtps2dq(zmm | T_rn_sae, zmm);
-                    CGA64::frintn(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
-                    CGA64::fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->frintn(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
                 } else if (attr_.round_mode_ == round_mode::down) {
                     // vcvtps2dq(zmm | T_rd_sae, zmm);
-                    CGA64::frintm(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
-                    CGA64::fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->frintm(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
+                    xa_->fcvtzs(xa::ZRegS(zmm.getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ZRegS(zmm.getIdx()));
                 } else {
                     assert(!"unimplemented");
                 }
@@ -499,14 +499,14 @@ void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::store_output(
             case data_type::s32: vmovups(addr, r_zmm); break;
             // case data_type::s8: vpmovsdb(addr, r_zmm); break;
             case data_type::s8: 
-                CGA64::smin(xa::ZRegS(r_zmm.getIdx()), 127);
-                CGA64::smax(xa::ZRegS(r_zmm.getIdx()), -128);
-                CGA64::st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
+                xa_->smin(xa::ZRegS(r_zmm.getIdx()), 127);
+                xa_->smax(xa::ZRegS(r_zmm.getIdx()), -128);
+                xa_->st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
                 break;
             // case data_type::u8: //< vpmovusdb(addr, r_zmm); break;
             case data_type::u8:
-                CGA64::umin(xa::ZRegS(r_zmm.getIdx()), 255);
-                CGA64::st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
+                xa_->umin(xa::ZRegS(r_zmm.getIdx()), 255);
+                xa_->st1b(xa::ZRegS(r_zmm.getIdx()), xa::PReg(_mask.getIdx()), xa::ptr(reg_tmp_adr));
                 break;
             default: assert(!"unknown dst_dt");
             }
@@ -543,7 +543,7 @@ void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::compute_ker_dw(
 
     auto compute = [=](Zmm vreg_acc, Zmm vreg_wei, Zmm vreg_src) {
         // vpdpbusd(vreg_acc, vreg_src, vreg_wei);
-        CGA64::sdot(xa::ZRegS(vreg_acc.getIdx()), xa::ZRegB(vreg_src.getIdx()), xa::ZRegB(vreg_wei.getIdx()));
+        xa_->sdot(xa::ZRegS(vreg_acc.getIdx()), xa::ZRegB(vreg_src.getIdx()), xa::ZRegB(vreg_wei.getIdx()));
     };
 
     int ii_start = 0;
@@ -668,7 +668,7 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::compute_ker(int ur_w, int pad_l,
     };
     auto compute = [=](Vmm vreg_acc, Vmm vreg_wei, Vmm vreg_src) {
         // vpdpbusd(vreg_acc, vreg_src, vreg_wei);
-        CGA64::sdot(xa::ZRegS(vreg_acc.getIdx()), xa::ZRegB(vreg_src.getIdx()), xa::ZRegB(vreg_wei.getIdx()));
+        xa_->sdot(xa::ZRegS(vreg_acc.getIdx()), xa::ZRegB(vreg_src.getIdx()), xa::ZRegB(vreg_wei.getIdx()));
     };
 
     for (int ki = 0; ki < kw; ki++) {
@@ -724,7 +724,7 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::compute_ker(int ur_w, int pad_l,
                                 re = re + (2 * EVEX_max_8b_offt) * scale;
 
                             if((-0x40 <= re) && (re < 0x40) && ((re%4) == 0))
-                                CGA64::ld1rw(xa::ZRegS(vmm_inp(jj, nb_oc_block).getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(xa::XReg(base.getIdx()), static_cast<int32_t>(re)));
+                                xa_->ld1rw(xa::ZRegS(vmm_inp(jj, nb_oc_block).getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(xa::XReg(base.getIdx()), static_cast<int32_t>(re)));
                             else {
                                 auto reg_tmp_adr = ((jj % 4) == 0)? reg_tmp0_adr
                                                    : ((jj % 4) == 1)? reg_tmp1_adr
@@ -735,7 +735,7 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::compute_ker(int ur_w, int pad_l,
                                                    : ((jj % 4) == 2)? reg_tmp2_imm
                                                    : reg_tmp3_imm;
                                 add_imm(reg_tmp_adr, xa::XReg(base.getIdx()), re, reg_tmp_imm);
-                                CGA64::ld1rw(xa::ZRegS(vmm_inp(jj, nb_oc_block).getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(reg_tmp_adr));
+                                xa_->ld1rw(xa::ZRegS(vmm_inp(jj, nb_oc_block).getIdx()), xa::PReg(mask_all_one.getIdx()), xa::ptr(reg_tmp_adr));
                             }
                         }
                         if (!jcp.signed_input)
@@ -913,21 +913,21 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::icb_loop(
 template<typename Vmm>
 void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::
     vmm_mask_all_one(const Xbyak::Opmask  mask_in) {
-    CGA64::ptrue(xa::PRegB(mask_in.getIdx()) );
-    CGA64::not_(xa::PRegB(mask_in.getIdx()), xa::PRegB(mask_in.getIdx()), xa::PRegB(14)); // P_MSB_384
+    xa_->ptrue(xa::PRegB(mask_in.getIdx()) );
+    xa_->not_(xa::PRegB(mask_in.getIdx()), xa::PRegB(mask_in.getIdx()), xa::PRegB(14)); // P_MSB_384
 }
 
 template<>
 void _jit_sve_x8s8s32x_fwd_kernel<Ymm>::
     vmm_mask_all_one(const Xbyak::Opmask mask_in) {
-    CGA64::ptrue(xa::PRegB(mask_in.getIdx()) );
-    CGA64::not_(xa::PRegB(mask_in.getIdx()), xa::PRegB(mask_in.getIdx()), xa::PRegB(13)); // P_MSB_256
+    xa_->ptrue(xa::PRegB(mask_in.getIdx()) );
+    xa_->not_(xa::PRegB(mask_in.getIdx()), xa::PRegB(mask_in.getIdx()), xa::PRegB(13)); // P_MSB_256
 }
 
 template<>
 void _jit_sve_x8s8s32x_fwd_kernel<Zmm>::
     vmm_mask_all_one(const Xbyak::Opmask mask_in) {
-    CGA64::ptrue(xa::PRegB(mask_in.getIdx()) );
+    xa_->ptrue(xa::PRegB(mask_in.getIdx()) );
 }
 
 template<typename Vmm>
@@ -977,10 +977,10 @@ void _jit_sve_x8s8s32x_fwd_kernel<Vmm>::generate()
     if (jcp.is_fast_depthwise) {
         // prepare mask register for blending weights
         // mov(reg_scratch, 0x8888444422221111);
-        CGA64::movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x1111), 0 );
-        CGA64::movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x2222), 16);
-        CGA64::movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x4444), 32);
-        CGA64::movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x8888), 48);
+        xa_->movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x1111), 0 );
+        xa_->movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x2222), 16);
+        xa_->movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x4444), 32);
+        xa_->movk(xa::XReg(reg_scratch.getIdx()), uint16_t(0x8888), 48);
         kmovq(kblend_mask, reg_scratch);
         // load permute indices from data section
         mov(reg_scratch, permute_index_table);

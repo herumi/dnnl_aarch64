@@ -563,7 +563,7 @@ void jit_uni_pool_kernel<isa>::maybe_zero_diff_src() {
         mov(tmp_gpr, jpp.ih * jpp.iw * jpp.c_block * jpp.dt_size);
 
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-	CodeGeneratorAArch64::mul(Xbyak_aarch64::XReg(zero_size.getIdx()), Xbyak_aarch64::XReg(zero_size.getIdx()), Xbyak_aarch64::XReg(tmp_gpr.getIdx()));
+	xa_->mul(Xbyak_aarch64::XReg(zero_size.getIdx()), Xbyak_aarch64::XReg(zero_size.getIdx()), Xbyak_aarch64::XReg(tmp_gpr.getIdx()));
 #else
         imul(zero_size, tmp_gpr);
 #endif
@@ -683,11 +683,11 @@ void jit_uni_pool_kernel<isa>::generate() {
 	  mov(reg_shuf_mask, 0x0c080400);
         } else if (isa >= avx512_common) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-	  CodeGeneratorAArch64::mov(Xbyak_aarch64::XReg(tmp_gpr.getIdx()), uint64_t(0x000000000000ffff));
-	  CodeGeneratorAArch64::sub(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
-	  CodeGeneratorAArch64::str(Xbyak_aarch64::XReg(tmp_gpr.getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
-	  CodeGeneratorAArch64::ldr(Xbyak_aarch64::PReg(k_index_mask.getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
-	  CodeGeneratorAArch64::add(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
+	  xa_->mov(Xbyak_aarch64::XReg(tmp_gpr.getIdx()), uint64_t(0x000000000000ffff));
+	  xa_->sub(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
+	  xa_->str(Xbyak_aarch64::XReg(tmp_gpr.getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
+	  xa_->ldr(Xbyak_aarch64::PReg(k_index_mask.getIdx()), Xbyak_aarch64::ptr(X_TRANSLATOR_STACK));
+	  xa_->add(X_TRANSLATOR_STACK, X_TRANSLATOR_STACK, 8);
 #else
 	  mov(tmp_gpr.cvt32(), 0x000f);
 	  kmovw(k_index_mask, tmp_gpr.cvt32());

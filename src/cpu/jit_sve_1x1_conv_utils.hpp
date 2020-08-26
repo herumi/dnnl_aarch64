@@ -42,12 +42,12 @@
 #include "jit_generator.hpp"
 
 #define push(X); \
-  CGA64::sub(sp, sp, 8); \
-  CGA64::str(X, xa::ptr(sp));
+  xa_->sub(sp, sp, 8); \
+  xa_->str(X, xa::ptr(sp));
 
 #define pop(X); \
-  CGA64::ldr(X, xa::ptr(sp)); \
-  CGA64::add(sp, sp, 8);
+  xa_->ldr(X, xa::ptr(sp)); \
+  xa_->add(sp, sp, 8);
 
 #define ADDMAX  4095
 #define MOVMAX 65535
@@ -58,7 +58,7 @@ namespace cpu {
 
 using namespace mkldnn::impl::utils;
 
-#define CGA64 CodeGeneratorAArch64
+
 namespace xa = Xbyak::Xbyak_aarch64;
 
 struct reduce_to_unit_stride_t {
@@ -185,26 +185,26 @@ struct rtus_driver_t: public jit_generator {
     void add_imm(reg64_t out, reg64_t in, int value){
       if( value >= 0){   
         if(value < ADDMAX){
-            CGA64::add(out, in, value);
+            xa_->add(out, in, value);
         }else if(value < MOVMAX){
-            CGA64::mov(reg_tmp, value);
-            CGA64::add(out, in, reg_tmp);
+            xa_->mov(reg_tmp, value);
+            xa_->add(out, in, reg_tmp);
         }else{
-            CGA64::mov(reg_tmp, value&0xffff);
-            CGA64::movk(reg_tmp, value>>16, 16);
-            CGA64::add(out, in, reg_tmp);
+            xa_->mov(reg_tmp, value&0xffff);
+            xa_->movk(reg_tmp, value>>16, 16);
+            xa_->add(out, in, reg_tmp);
         }
       }else{
         int val = -1 * value;
         if(val < ADDMAX){
-            CGA64::sub(out, in, val);
+            xa_->sub(out, in, val);
         }else if(val < MOVMAX){
-            CGA64::mov(reg_tmp, val);
-            CGA64::sub(out, in, reg_tmp);
+            xa_->mov(reg_tmp, val);
+            xa_->sub(out, in, reg_tmp);
         }else{
-            CGA64::mov(reg_tmp, val&0xffff);
-            CGA64::movk(reg_tmp, val>>16, 16);
-            CGA64::sub(out, in, reg_tmp);
+            xa_->mov(reg_tmp, val&0xffff);
+            xa_->movk(reg_tmp, val>>16, 16);
+            xa_->sub(out, in, reg_tmp);
         }
 
       }
@@ -251,24 +251,24 @@ struct rtus_driver_t: public jit_generator {
 
     void loop_is() {
 
-        CGA64::mov(reg_cur_src, reg_src);
-        CGA64::mov(reg_cur_iw, reg_iw_start);
-        CGA64::mov(reg_cur_os, reg_os);
+        xa_->mov(reg_cur_src, reg_src);
+        xa_->mov(reg_cur_iw, reg_iw_start);
+        xa_->mov(reg_cur_os, reg_os);
 
-        xa::LabelAArch64 is_loop;
-        CGA64::L_aarch64(is_loop);
+        xa::Label is_loop;
+        xa_->L(is_loop);
 
         if (src_to_ws_) {
-            CGA64::ldr(reg_v, xa::ptr(reg_cur_src));
-            CGA64::str(reg_v, xa::ptr(reg_ws));
+            xa_->ldr(reg_v, xa::ptr(reg_cur_src));
+            xa_->str(reg_v, xa::ptr(reg_ws));
         } else {
-            CGA64::ldr(reg_v, xa::ptr(reg_ws));
-            CGA64::str(reg_v, xa::ptr(reg_cur_src));
+            xa_->ldr(reg_v, xa::ptr(reg_ws));
+            xa_->str(reg_v, xa::ptr(reg_cur_src));
             for (int w = 1; w < stride_w_; ++w){
                 int ofs = w * vlen_;
                 ofs = ofs>>6;
                 assert( ofs < 256 );
-                CGA64::str(reg_zero, xa::ptr(reg_cur_src, ofs));
+                xa_->str(reg_zero, xa::ptr(reg_cur_src, ofs));
             }
         }
 
@@ -277,41 +277,41 @@ struct rtus_driver_t: public jit_generator {
 
         // for 1d or stride_h=1 convolutions the loop over h should be skipped
         if (!(src_step_icb_ == iw_ || src_step_h_ == iw_)) {
-            xa::LabelAArch64 skip_h_step;
+            xa::Label skip_h_step;
             add_imm(reg_cur_iw, reg_cur_iw, stride_w_);
-            CGA64::cmp(reg_cur_iw, iw_);
-            CGA64::b(xa::LT, skip_h_step);
+            xa_->cmp(reg_cur_iw, iw_);
+            xa_->b(xa::LT, skip_h_step);
 
             if (src_to_ws_) {
                 add_imm(reg_cur_src, reg_cur_src, (src_step_h_ - iw_) * vlen_);
             } else {
                 reg64_t reg_cur_src_fin = reg_cur_iw; /* just reuse */
-                CGA64::mov(reg_cur_src_fin, reg_cur_src);
+                xa_->mov(reg_cur_src_fin, reg_cur_src);
                 add_imm(reg_cur_src_fin, reg_cur_src_fin, (src_step_h_ - iw_) * vlen_);
-                xa::LabelAArch64 ih_loop;
-                CGA64::L_aarch64(ih_loop);
+                xa::Label ih_loop;
+                xa_->L(ih_loop);
 
                 for (int w = 0; w < stride_w_; ++w){
                     int ofs = w * vlen_;
                     ofs = ofs>>6;
                     assert( ofs < 256 );
 
-                    CGA64::str(reg_zero, xa::ptr(reg_cur_src, ofs));
+                    xa_->str(reg_zero, xa::ptr(reg_cur_src, ofs));
                 }
 
                 add_imm(reg_cur_src, reg_cur_src, stride_w_ * vlen_);
-                CGA64::cmp(reg_cur_src, reg_cur_src_fin);
-                CGA64::b(xa::LT, ih_loop);
+                xa_->cmp(reg_cur_src, reg_cur_src_fin);
+                xa_->b(xa::LT, ih_loop);
             }
-            CGA64::mov(reg_cur_iw, 0);
-            CGA64::L_aarch64(skip_h_step);
+            xa_->mov(reg_cur_iw, 0);
+            xa_->L(skip_h_step);
         }
         assert(vlen_ < 4096);
-        CGA64::subs(reg_cur_os, reg_cur_os, vlen_);
-        CGA64::b(xa::NE, is_loop);
+        xa_->subs(reg_cur_os, reg_cur_os, vlen_);
+        xa_->b(xa::NE, is_loop);
 
         /* restore dst */
-        CGA64::sub(reg_ws, reg_ws, reg_os);
+        xa_->sub(reg_ws, reg_ws, reg_os);
     }
 
     void generate() {
@@ -325,7 +325,7 @@ struct rtus_driver_t: public jit_generator {
 #endif
 
 #define READ_PARAM(what) \
-        CGA64::ldr(reg_ ## what, xa::ptr(abi_param1_aarch64, static_cast<int32_t>(offsetof(call_params_t, what))))
+        xa_->ldr(reg_ ## what, xa::ptr(abi_param1_aarch64, static_cast<int32_t>(offsetof(call_params_t, what))))
 
         READ_PARAM(src);
         READ_PARAM(icb);
@@ -335,7 +335,7 @@ struct rtus_driver_t: public jit_generator {
         READ_PARAM(ws); /* reg_ws should always be read the last */
 #undef  READ_PARAM
 
-        CGA64::lsl(reg_os, reg_os, vlen_shift_);
+        xa_->lsl(reg_os, reg_os, vlen_shift_);
 
         if (!src_to_ws_) {
             switch (reg_zero.getBit() / 8) {
@@ -350,15 +350,15 @@ struct rtus_driver_t: public jit_generator {
             case 64 /*zmm*/:
                 {
                 xa::ZRegS zreg_zs(reg_zero.getIdx());
-                CGA64::fmov(zreg_zs);
+                xa_->fmov(zreg_zs);
                 break;
                 }
             default: assert(!"rtus kernel failure");
             }
         }
 
-        xa::LabelAArch64 icb_loop;
-        CGA64::L_aarch64(icb_loop);
+        xa::Label icb_loop;
+        xa_->L(icb_loop);
 
 
         loop_is();
@@ -366,8 +366,8 @@ struct rtus_driver_t: public jit_generator {
         add_imm(reg_ws, reg_ws, ws_step_icb_ * vlen_);
         add_imm(reg_src, reg_src, src_step_icb_ * vlen_);
 
-        CGA64::subs(reg_icb, reg_icb, 1); //dec(reg_icb);
-        CGA64::b(xa::NE, icb_loop);
+        xa_->subs(reg_icb, reg_icb, 1); //dec(reg_icb);
+        xa_->b(xa::NE, icb_loop);
 
 #if defined(_WIN32)
         pop(rdi);

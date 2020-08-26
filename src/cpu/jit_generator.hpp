@@ -291,48 +291,48 @@ public:
        */
         assert(!(num_abi_save_gpr_regs_aarch64 % 2));
 
-        CodeGeneratorAArch64::stp(x29, x30,
-                xa::pre_ptr(CodeGeneratorAArch64::sp,
+        xa_->stp(x29, x30,
+                xa::pre_ptr(xa_->sp,
 			    -16));
 	/* x29 is a frame pointer. */
-	CodeGeneratorAArch64::mov(x29, CodeGeneratorAArch64::sp);
+	xa_->mov(x29, xa_->sp);
 
-	CodeGeneratorAArch64::sub(CodeGeneratorAArch64::sp,
-				  CodeGeneratorAArch64::sp,
+	xa_->sub(xa_->sp,
+				  xa_->sp,
 				  static_cast<int64_t>(preserved_stack_size) - 16);
 
 	/* x9 can be used as a temporal register. */
-        CodeGeneratorAArch64::mov(x9, CodeGeneratorAArch64::sp);
+        xa_->mov(x9, xa_->sp);
         if (vreg_to_preserve) {
-            CodeGeneratorAArch64::st4((v8.d - v11.d)[0],
+            xa_->st4((v8.d - v11.d)[0],
                     xa::post_ptr(x9, vreg_len_preserve * 4));
-            CodeGeneratorAArch64::st4((v12.d - v15.d)[0],
+            xa_->st4((v12.d - v15.d)[0],
                     xa::post_ptr(x9, vreg_len_preserve * 4));
         }
         for (size_t i = 0; i < num_abi_save_gpr_regs_aarch64; i += 2) {
-	    CodeGeneratorAArch64::stp(xa::XReg(abi_save_gpr_regs_aarch64[i]),
+	    xa_->stp(xa::XReg(abi_save_gpr_regs_aarch64[i]),
                     xa::XReg(abi_save_gpr_regs_aarch64[i + 1]),
                     post_ptr(x9, xreg_len * 2));
         }
 
 
-	CodeGeneratorAArch64::ptrue(P_ALL_ONE.b);
-	CodeGeneratorAArch64::ptrue(P_MSB_384.b, xa::VL16);
-	CodeGeneratorAArch64::ptrue(P_MSB_256.b, xa::VL32);
-	CodeGeneratorAArch64::not_(P_MSB_384.b, P_ALL_ONE/xa::T_z, P_MSB_384.b);
-	CodeGeneratorAArch64::not_(P_MSB_256.b, P_ALL_ONE/xa::T_z, P_MSB_256.b);
+	xa_->ptrue(P_ALL_ONE.b);
+	xa_->ptrue(P_MSB_384.b, xa::VL16);
+	xa_->ptrue(P_MSB_256.b, xa::VL32);
+	xa_->not_(P_MSB_384.b, P_ALL_ONE/xa::T_z, P_MSB_384.b);
+	xa_->not_(P_MSB_256.b, P_ALL_ONE/xa::T_z, P_MSB_256.b);
 
 	/* arg values are passed different registers between x86_64 and aarch64. */
-	CodeGeneratorAArch64::mov(x7, x0); /* First arg. */
-	CodeGeneratorAArch64::mov(x6, x1); /* Sedond arg. */
-	CodeGeneratorAArch64::mov(x2, x2);
-	CodeGeneratorAArch64::mov(x1, x3);
-	CodeGeneratorAArch64::mov(x8, x4);
-	CodeGeneratorAArch64::mov(x9, x5); /* 6-th arg. */
+	xa_->mov(x7, x0); /* First arg. */
+	xa_->mov(x6, x1); /* Sedond arg. */
+	xa_->mov(x2, x2);
+	xa_->mov(x1, x3);
+	xa_->mov(x8, x4);
+	xa_->mov(x9, x5); /* 6-th arg. */
 	/* Note:If # of args is more than 6, 7-th, 8-th, ..., args are passed by stack. */
-	CodeGeneratorAArch64::mov(x4, CodeGeneratorAArch64::sp); /* Intel64's stack register is 4-th register. */
-	CodeGeneratorAArch64::sub_imm(X_TRANSLATOR_STACK, x4, xt_stack_offset, X_TMP_0);
-	CodeGeneratorAArch64::mov_imm(X_TMP_0, getTranslatorVersion()); /*get translator version info */
+	xa_->mov(x4, xa_->sp); /* Intel64's stack register is 4-th register. */
+	xa_->sub_imm(X_TRANSLATOR_STACK, x4, xt_stack_offset, X_TMP_0);
+	xa_->mov_imm(X_TMP_0, getTranslatorVersion()); /*get translator version info */
 #else //#ifdef DNNL_INDIRECT_JIT_AARCH64
         if (xmm_to_preserve) {
             sub(rsp, xmm_to_preserve * xmm_len); // subtract by imm
@@ -369,11 +369,11 @@ public:
 
     void postamble() {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-        CodeGeneratorAArch64::mov(x9, CodeGeneratorAArch64::sp);
+        xa_->mov(x9, xa_->sp);
 
-	CodeGeneratorAArch64::eor(P_ALL_ONE.b, P_ALL_ONE/xa::T_z, P_ALL_ONE.b, P_ALL_ONE.b);
-	CodeGeneratorAArch64::eor(P_MSB_384.b, P_MSB_384/xa::T_z, P_MSB_384.b, P_MSB_384.b);
-	CodeGeneratorAArch64::eor(P_MSB_256.b, P_MSB_256/xa::T_z, P_MSB_256.b, P_MSB_256.b);
+	xa_->eor(P_ALL_ONE.b, P_ALL_ONE/xa::T_z, P_ALL_ONE.b, P_ALL_ONE.b);
+	xa_->eor(P_MSB_384.b, P_MSB_384/xa::T_z, P_MSB_384.b, P_MSB_384.b);
+	xa_->eor(P_MSB_256.b, P_MSB_256/xa::T_z, P_MSB_256.b, P_MSB_256.b);
 
 	if (vreg_to_preserve) {
             ld4((v8.d - v11.d)[0], post_ptr(x9, vreg_len_preserve * 4));
@@ -386,13 +386,13 @@ public:
                     xa::post_ptr(x9, xreg_len * 2));
         }
 
-	CodeGeneratorAArch64::add(CodeGeneratorAArch64::sp,
-				  CodeGeneratorAArch64::sp,
+	xa_->add(xa_->sp,
+				  xa_->sp,
 				  static_cast<int64_t>(preserved_stack_size) - 16);
         ldp(x29, x30,
-                xa::post_ptr(CodeGeneratorAArch64::sp,
+                xa::post_ptr(xa_->sp,
 			     +16));
-	CodeGeneratorAArch64::ret();
+	xa_->ret();
 #else //#ifdef DNNL_INDIRECT_JIT_AARCH64
         for (size_t i = 0; i < num_abi_save_gpr_regs; ++i)
             pop(Xbyak::Reg64(abi_save_gpr_regs[num_abi_save_gpr_regs - 1 - i]));
@@ -1087,7 +1087,7 @@ public:
     virtual const char *source_file() const = 0;
 
     const uint32_t *getCode32() {
-        const uint32_t *code = CodeGeneratorAArch64::getCode32();
+        const uint32_t *code = (const uint32_t*)xa_->getCode();
         register_code32(code);
 
 	      if (mkldnn_jit_dump())

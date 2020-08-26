@@ -47,7 +47,7 @@ namespace mkldnn {
 namespace impl {
 namespace cpu {
 
-#define CGA64 CodeGeneratorAArch64
+
 namespace xa = Xbyak::Xbyak_aarch64;
 
 struct jit_sve_x8s8s32x_1x1_conv_kernel: public jit_generator {
@@ -182,16 +182,16 @@ struct jit_sve_x8s8s32x_1x1_conv_kernel: public jit_generator {
     void add_imm(xa::XReg out, xa::XReg in, long long int value, xa::XReg reg_tmp_imm){
         long long int val = (value >= 0) ? value : -1 * value;
         if( val <= ADDMAX ){
-            if( value >= 0 )  CGA64::add(out, in, val);
-            else              CGA64::sub(out, in, val);
+            if( value >= 0 )  xa_->add(out, in, val);
+            else              xa_->sub(out, in, val);
         }else{
-            CGA64::mov(reg_tmp_imm, val&0xffff);
-            if(val > MOVMAX) CGA64::movk(reg_tmp_imm, (val>>16)&0xffff, 16);
-            if(val > 0xffffffff) CGA64::movk(reg_tmp_imm, (val>>32)&0xffff, 32);
-            if(val > 0xffffffffffff) CGA64::movk(reg_tmp_imm, (val>>48)&0xffff, 48);
+            xa_->mov(reg_tmp_imm, val&0xffff);
+            if(val > MOVMAX) xa_->movk(reg_tmp_imm, (val>>16)&0xffff, 16);
+            if(val > 0xffffffff) xa_->movk(reg_tmp_imm, (val>>32)&0xffff, 32);
+            if(val > 0xffffffffffff) xa_->movk(reg_tmp_imm, (val>>48)&0xffff, 48);
 
-            if( value >= 0 )  CGA64::add(out, in, reg_tmp_imm);
-            else              CGA64::sub(out, in, reg_tmp_imm);
+            if( value >= 0 )  xa_->add(out, in, reg_tmp_imm);
+            else              xa_->sub(out, in, reg_tmp_imm);
         }
     }
 };

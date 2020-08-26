@@ -943,7 +943,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
                         ld1((xmm_tmp.s4)[0], addr);
                         rsvdOffsetOut += 4;
                         fadd(xmm_tmp.s4, VReg(ur).s4, (xmm_tmp.s4));
-                        CodeGeneratorAArch64::mov(
+                        Xbyak::Xbyak_aarch64::CodeGenerator::mov(
                                 (VReg(ur).s4)[0], (xmm_tmp.s4)[0]);
                     } else {
                         if (prb_.otype == s32) {
@@ -958,7 +958,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
                             assert(!"unsupported o_type");
                         }
                         cvt2ps(xmm_tmp, xmm_tmp, prb_.otype);
-                        CodeGeneratorAArch64::fadd(
+                        Xbyak::Xbyak_aarch64::CodeGenerator::fadd(
                                 VReg(ur).s4, VReg(ur).s4, xmm_tmp.s4);
                     }
                 }
@@ -1053,12 +1053,12 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         }
     }
 
-    void loop_begin(LabelAArch64 &l, XReg reg_cnt, int len) {
-        CodeGeneratorAArch64::mov(reg_cnt, len);
-        L_aarch64(l);
+    void loop_begin(xa::Label &l, XReg reg_cnt, int len) {
+        Xbyak::Xbyak_aarch64::CodeGenerator::mov(reg_cnt, len);
+        Xbyak::Xbyak_aarch64::CodeGenerator::L(l);
     }
 
-    void loop_end(LabelAArch64 &l, XReg reg_cnt, int len, int i_step,
+    void loop_end(xa::Label &l, XReg reg_cnt, int len, int i_step,
             int o_step, int s_step) {
 
         bool flag = (prb_.scale_type == scale_type_t::MANY);
@@ -1074,7 +1074,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         if (flag) {
             add_imm(reg_ptr_scale, reg_ptr_scale, s_step * stype_sz, reg_tmp);
         }
-        CodeGeneratorAArch64::sub(reg_cnt, reg_cnt, 1);
+        Xbyak::Xbyak_aarch64::CodeGenerator::sub(reg_cnt, reg_cnt, 1);
         cbnz(reg_cnt, l);
 
         DBG_MSG_JIT_REORDER(sub load addr, iTmp * len);
@@ -1105,7 +1105,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         if (prb_.scale_type == scale_type_t::MANY)
             eor(reg_off_scale, reg_off_scale, reg_off_scale);
 
-        LabelAArch64 l_loop[3];
+        xa::Label l_loop[3];
 
         if (n_jit_loops > 2)
             loop_begin(l_loop[2], reg_cnt[2], n(nfu + 2));

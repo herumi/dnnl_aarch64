@@ -32,7 +32,7 @@ namespace mkldnn {
 namespace impl {
 namespace cpu {
 
-#define CGA64 CodeGeneratorAArch64
+
 namespace xa = Xbyak::Xbyak_aarch64;
 
 template <cpu_isa_t isa>

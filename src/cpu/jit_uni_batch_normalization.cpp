@@ -454,7 +454,7 @@ struct jit_bnorm_t: public jit_generator {
                 add(reg_soff, factor * vlen_spat_data_);
                 sub(reg_ctr, factor);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-		CodeGeneratorAArch64::cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
+		xa_->cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
 #endif
 		jnz(label);
             }
@@ -613,7 +613,7 @@ struct jit_bnorm_t: public jit_generator {
                     add(reg_roff, reg_coff_max);
                     sub(reg_ctr, 1);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-		    CodeGeneratorAArch64::cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
+		    xa_->cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
 #endif
 		    jnz(mean_reduction_thrs);
                 }
@@ -673,7 +673,7 @@ struct jit_bnorm_t: public jit_generator {
                     add(reg_roff, reg_coff_max);
                     sub(reg_ctr, 1);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-		    CodeGeneratorAArch64::cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
+		    xa_->cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
 #endif
 		    jnz(var_reduction_thrs);
                 }
@@ -1024,7 +1024,7 @@ struct jit_bnorm_t: public jit_generator {
                     add(reg_roff, reg_coff_max);
                     sub(reg_ctr, 1);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-		    CodeGeneratorAArch64::cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
+		    xa_->cmp(Xbyak_aarch64::XReg(reg_ctr.getIdx()), 0);
 #endif
 		    jnz(sh_reduction_thrs);
                 }

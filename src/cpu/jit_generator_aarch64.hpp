@@ -162,7 +162,7 @@ inline unsigned int get_A64FX_cache_size_aarch64(int level, bool per_core = true
 } // namespace
 #endif
 
-class jit_generator_aarch64 : public Xbyak::Xbyak_aarch64::CodeGeneratorAArch64
+class jit_generator_aarch64 : public Xbyak::Xbyak_aarch64::CodeGenerator
 {
 private:
     const size_t xmm_len = 16;
@@ -227,16 +227,16 @@ public:
     inline size_t get_size_of_abi_save_regs() { return size_of_abi_save_regs; }
 
     void preamble() {
-        CodeGeneratorAArch64::stp(x29, x30,
-                pre_ptr(CodeGeneratorAArch64::sp,
+        stp(x29, x30,
+                pre_ptr(sp,
 			    -16));
 	/* x29 is a frame pointer. */
-	CodeGeneratorAArch64::mov(x29, CodeGeneratorAArch64::sp);
+	mov(x29, sp);
 
-	CodeGeneratorAArch64::sub(sp, sp, static_cast<int64_t>(preserved_stack_size) - 16);
+	sub(sp, sp, static_cast<int64_t>(preserved_stack_size) - 16);
 
 	/* x9 can be used as a temporal register. */
-        CodeGeneratorAArch64::mov(x9, CodeGeneratorAArch64::sp);
+        mov(x9, sp);
 
         if (vreg_to_preserve) {
             st4((v8.d - v11.d)[0], post_ptr(x9, vreg_len_preserve*4));
@@ -298,7 +298,7 @@ public:
     }
 
     void postamble() {
-        CodeGeneratorAArch64::mov(x9, CodeGeneratorAArch64::sp);
+        mov(x9, sp);
 
         if (vreg_to_preserve) {
             ld4((v8.d - v11.d)[0], post_ptr(x9, vreg_len_preserve*4));
@@ -311,7 +311,7 @@ public:
         }
 
         add(sp, sp, static_cast<int64_t>(preserved_stack_size) - 16);
-        ldp(x29, x30, post_ptr(CodeGeneratorAArch64::sp, 16));
+        ldp(x29, x30, post_ptr(sp, 16));
         ret();
     }
 #else
@@ -413,12 +413,12 @@ public:
 
     // Disallow char-based labels completely
     void L(const char *label) = delete;
-    void L(Xbyak::Xbyak_aarch64::LabelAArch64 &label) {
-        Xbyak::Xbyak_aarch64::CodeGeneratorAArch64::L_aarch64(label);
+    void L(xa::Label &label) {
+        Xbyak::Xbyak_aarch64::CodeGenerator::L(label);
     }
 
     void L_aligned(
-            Xbyak::Xbyak_aarch64::LabelAArch64 &label, int alignment = 16) {
+            xa::Label &label, int alignment = 16) {
         align(alignment);
         L(label);
     }
@@ -1428,7 +1428,7 @@ public:
 
 public:
     jit_generator_aarch64(void *code_ptr = nullptr, size_t code_size = 256 * 1024)
-        : Xbyak::Xbyak_aarch64::CodeGeneratorAArch64(code_size, code_ptr) {
+        : Xbyak::Xbyak_aarch64::CodeGenerator(code_size, code_ptr) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
         assert(!(num_abi_save_gpr_regs % 2));
 #endif
@@ -1441,7 +1441,7 @@ public:
     // XXX: use normal_case name and update all callees (?)
 
     const uint32_t *getCode32() {
-        const uint32_t *code = CodeGeneratorAArch64::getCode32();
+        const uint32_t *code = (const uint32_t*)Xbyak::Xbyak_aarch64::CodeGenerator::getCode();
         register_code(code);
 
         if (mkldnn_jit_dump())

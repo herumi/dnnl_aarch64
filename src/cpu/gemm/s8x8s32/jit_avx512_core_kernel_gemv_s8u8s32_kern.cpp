@@ -230,7 +230,7 @@ T jit_avx512_core_gemv_s8u8s32_kern::generate(int use_vnni) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
     if(use_vnni) {
       /* First float arg is passed by xmm0. */
-      CodeGeneratorAArch64::mov(Xbyak::Xbyak_aarch64::VReg4S(beta.getIdx())[0], w3);
+      xa_->mov(Xbyak::Xbyak_aarch64::VReg4S(beta.getIdx())[0], w3);
     }
 #endif
 
@@ -265,10 +265,10 @@ T jit_avx512_core_gemv_s8u8s32_kern::generate(int use_vnni) {
     sub(rbx, 1);
     kmovq(mask_m, rbx);
 #else
-    CodeGeneratorAArch64::mov(Xbyak::Xbyak_aarch64::PRegB(mask_m.getIdx()), P_ALL_ONE.b);
-    CodeGeneratorAArch64::index(Xbyak::Xbyak_aarch64::ZRegS(31), 1, 1);
-    CodeGeneratorAArch64::dup(Xbyak::Xbyak_aarch64::ZRegS(30), Xbyak::Xbyak_aarch64::WReg(rax.getIdx()));
-    CodeGeneratorAArch64::cmpge(Xbyak::Xbyak_aarch64::PRegS(mask_m.getIdx()),
+    xa_->mov(Xbyak::Xbyak_aarch64::PRegB(mask_m.getIdx()), P_ALL_ONE.b);
+    xa_->index(Xbyak::Xbyak_aarch64::ZRegS(31), 1, 1);
+    xa_->dup(Xbyak::Xbyak_aarch64::ZRegS(30), Xbyak::Xbyak_aarch64::WReg(rax.getIdx()));
+    xa_->cmpge(Xbyak::Xbyak_aarch64::PRegS(mask_m.getIdx()),
 			      Xbyak::Xbyak_aarch64::PReg(mask_m.getIdx())/Xbyak::Xbyak_aarch64::T_z,
 			      Xbyak::Xbyak_aarch64::ZRegS(30),
 			      Xbyak::Xbyak_aarch64::ZRegS(31));
@@ -278,8 +278,8 @@ T jit_avx512_core_gemv_s8u8s32_kern::generate(int use_vnni) {
     // setup register of ones when VNNI instructions not available
     if (!use_vnni) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-      CodeGeneratorAArch64::adr(X_TMP_ADDR, one_label);
-      CodeGeneratorAArch64::ldr(Xbyak::Xbyak_aarch64::ZReg(one.getIdx()), Xbyak::Xbyak_aarch64::ptr(X_TMP_ADDR));
+      xa_->adr(X_TMP_ADDR, one_label);
+      xa_->ldr(Xbyak::Xbyak_aarch64::ZReg(one.getIdx()), Xbyak::Xbyak_aarch64::ptr(X_TMP_ADDR));
 #else
         vmovdqu16(one, ptr[rip + one_label]);
 #endif
@@ -342,7 +342,7 @@ T jit_avx512_core_gemv_s8u8s32_kern::generate(int use_vnni) {
     L_aligned(n_tail_label);
 
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-    CodeGeneratorAArch64::ands(P_TMP_0.b, P_ALL_ONE/Xbyak::Xbyak_aarch64::T_z,
+    xa_->ands(P_TMP_0.b, P_ALL_ONE/Xbyak::Xbyak_aarch64::T_z,
 			       Xbyak::Xbyak_aarch64::PRegB(mask_n.getIdx()),
 			       Xbyak::Xbyak_aarch64::PRegB(k3.getIdx()));
 #else
@@ -404,7 +404,7 @@ T jit_avx512_core_gemv_s8u8s32_kern::generate(int use_vnni) {
         // N tail
         L_aligned(n_tail_label_case[ii - 1]);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-        CodeGeneratorAArch64::ands(P_TMP_0.b, P_ALL_ONE/Xbyak::Xbyak_aarch64::T_z,
+        xa_->ands(P_TMP_0.b, P_ALL_ONE/Xbyak::Xbyak_aarch64::T_z,
 				   Xbyak::Xbyak_aarch64::PRegB(mask_n.getIdx()),
 				   Xbyak::Xbyak_aarch64::PRegB(k3.getIdx()));
 #else
