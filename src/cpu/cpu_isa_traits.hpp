@@ -109,15 +109,15 @@ template <> struct cpu_isa_traits<avx512_core_bf16>:
 #ifdef __ARM_ARCH
 template <>
 struct cpu_isa_traits<simd> {
-    typedef Xbyak::Xbyak_aarch64::VReg4S Vmm;
+    typedef Xbyak_aarch64::VReg4S Vmm;
     static constexpr int vlen_shift = 5;
 	static constexpr int vlen = 16;
 	static constexpr int n_vregs = 32;
 };
 
 template <> struct cpu_isa_traits<sve> {
-    typedef Xbyak::Xbyak_aarch64::ZRegS Vmm;
-	typedef Xbyak::Xbyak_aarch64::AdrScImm uni_ldst_addressing;
+    typedef Xbyak_aarch64::ZRegS Vmm;
+	typedef Xbyak_aarch64::AdrScImm uni_ldst_addressing;
 	static constexpr int vlen_shift = 5;
 	static constexpr int vlen = 64;
 	static constexpr int n_vregs = 32;

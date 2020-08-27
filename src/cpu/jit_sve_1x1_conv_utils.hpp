@@ -59,7 +59,7 @@ namespace cpu {
 using namespace mkldnn::impl::utils;
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 
 struct reduce_to_unit_stride_t {
     convolution_desc_t conv_d_;

@@ -59,7 +59,7 @@ using namespace mkldnn::impl::memory_format;
 using namespace mkldnn::impl::utils;
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 
 void jit_sve_1x1_conv_kernel::bcast_loop(int load_loop_blk)
 {

@@ -33,7 +33,7 @@ namespace impl {
 namespace cpu {
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 
 template <cpu_isa_t isa>
 struct jit_uni_eltwise_injector_f32 {
@@ -46,7 +46,7 @@ struct jit_uni_eltwise_injector_f32 {
             float alpha, float beta, bool save_state = true,
             Xbyak::Reg64 p_table = Xbyak::util::rax,
             Xbyak::Opmask k_mask = Xbyak::Opmask(1),
-            Xbyak::Xbyak_aarch64::PReg p = Xbyak::Xbyak_aarch64::PReg(0))
+            Xbyak_aarch64::PReg p = Xbyak_aarch64::PReg(0))
         : alg_(alg), alpha_(alpha), beta_(beta), h(host)
         , save_state_(save_state), p_table(p_table), k_mask(k_mask), p(p)
 #else //#ifdef DNNL_INDIRECT_JIT_AARCH64
@@ -116,7 +116,7 @@ private:
 #ifdef DNNL_INDIRECT_JIT_AARCH64
     const static size_t expN = 5;
     Vmm log2, log2_e, expCoeff[5];
-    const Xbyak::Xbyak_aarch64::PReg p;
+    const Xbyak_aarch64::PReg p;
     Vmm geluC1;
     Vmm geluC2;
 #endif  

@@ -76,8 +76,8 @@ void jit_uni_eltwise_injector_f32<isa>::injector_preamble(size_t start_idx,
 
 #ifdef DNNL_NATIVE_JIT_AARCH64
     h->xa_->sub(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
-    h->xa_->str(p, Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
-    h->xa_->ptrue(p.s, Xbyak::Xbyak_aarch64::ALL);
+    h->xa_->str(p, Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+    h->xa_->ptrue(p.s, Xbyak_aarch64::ALL);
 #endif
 
     assign_regs();
@@ -136,7 +136,7 @@ void jit_uni_eltwise_injector_f32<isa>::injector_preamble_tail(size_t start_idx)
 template <cpu_isa_t isa>
 void jit_uni_eltwise_injector_f32<isa>::injector_postamble() {
 #ifdef DNNL_NATIVE_JIT_AARCH64
-    h->xa_->ldr(p, Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+    h->xa_->ldr(p, Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
     h->xa_->add(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
 #endif
 
@@ -192,9 +192,9 @@ void jit_uni_eltwise_injector_f32<isa>::assign_reg_values() {
 }
 template <>
 void jit_uni_eltwise_injector_f32<avx512_common>::assign_reg_values() {
-    using namespace Xbyak::Xbyak_aarch64;
-    Xbyak::Xbyak_aarch64::XReg tblPtr{static_cast<uint32_t>(p_table.getIdx())};
-    Xbyak::Xbyak_aarch64::XReg addrReg{28};
+    using namespace Xbyak_aarch64;
+    Xbyak_aarch64::XReg tblPtr{static_cast<uint32_t>(p_table.getIdx())};
+    Xbyak_aarch64::XReg addrReg{28};
     int eluOffset = 25 * vlen / sizeof(float) * 4 /* h->dd(cvals[i]) */
       + vlen / sizeof(float) * 4 /* h->dd(float2int(alpha_) */
       + vlen / sizeof(float) * 4 /* h->dd(0) */;
@@ -277,7 +277,7 @@ void jit_uni_eltwise_injector_f32<isa>::exp_compute_vector(const Vmm &vmm_src) {
 template<class T, class Z, class P>
 void expSVE(T *h, const Z& src, const Z& t1, const Z& t2, const P& p, const Z& log2, const Z& log2_e, const Z coeff[5])
 {
-    using namespace Xbyak::Xbyak_aarch64;
+    using namespace Xbyak_aarch64;
 
     h->xa_->fmul(src, src, log2_e);
     h->xa_->frintn(t2, p/T_m, src); // rounding : float -> float
@@ -295,7 +295,7 @@ void expSVE(T *h, const Z& src, const Z& t1, const Z& t2, const P& p, const Z& l
 
 template <>
 void jit_uni_eltwise_injector_f32<avx512_common>::exp_compute_vector(const Vmm &vmm_src) {
-    using namespace Xbyak::Xbyak_aarch64;
+    using namespace Xbyak_aarch64;
 
     ZRegS tmpLog2(log2.getIdx());
     ZRegS tmpLog2_e(log2_e.getIdx());
@@ -371,7 +371,7 @@ void jit_uni_eltwise_injector_f32<isa>::elu_compute_vector(const Vmm &vmm_src) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
 template <>
 void jit_uni_eltwise_injector_f32<avx512_common>::tanh_compute_vector(const Vmm &vmm_src) {
-    using namespace Xbyak::Xbyak_aarch64;
+    using namespace Xbyak_aarch64;
 
     ZRegS tmpLog2(log2.getIdx());
     ZRegS tmpLog2_e(log2_e.getIdx());
@@ -495,7 +495,7 @@ void jit_uni_eltwise_injector_f32<isa>::tanh_compute_vector(const Vmm &vmm_src)
     if (isa == avx512_common) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
         h->xa_->sub(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
-        h->xa_->str(xa_::PReg(k_mask.getIdx()), Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+        h->xa_->str(xa_::PReg(k_mask.getIdx()), Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
 #else
         h->kmovw(h->ptr[h->rsp + 4 * vlen], k_mask);
 #endif
@@ -509,7 +509,7 @@ void jit_uni_eltwise_injector_f32<isa>::tanh_compute_vector(const Vmm &vmm_src)
     h->uni_vmovups(vmm_src, h->ptr[h->rsp + 3 * vlen]);
     if (isa == avx512_common) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-        h->xa_->ldr(xa_::PReg(k_mask.getIdx()), Xbyak::Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
+        h->xa_->ldr(xa_::PReg(k_mask.getIdx()), Xbyak_aarch64::ptr(h->X_TRANSLATOR_STACK));
         h->xa_->add(h->X_TRANSLATOR_STACK, h->X_TRANSLATOR_STACK, 8);
 #else
         h->kmovw(k_mask, h->ptr[h->rsp + 4 * vlen]);
@@ -549,7 +549,7 @@ void jit_uni_eltwise_injector_f32<isa>::tanh_compute_vector(const Vmm &vmm_src)
 #ifdef DNNL_INDIRECT_JIT_AARCH64
 template <>
 void jit_uni_eltwise_injector_f32<avx512_common>::gelu_compute_vector(const Vmm &vmm_src) {
-    using namespace Xbyak::Xbyak_aarch64;
+    using namespace Xbyak_aarch64;
 
     /*
         C = C1 + C2 x^2
@@ -774,7 +774,7 @@ void jit_uni_eltwise_injector_f32<isa>::soft_relu_compute_vector(
 template <>
 void jit_uni_eltwise_injector_f32<avx512_common>::logistic_compute_vector(
         const Vmm &vmm_src) {
-    using namespace Xbyak::Xbyak_aarch64;
+    using namespace Xbyak_aarch64;
 
     ZRegS tmpLog2(log2.getIdx());
     ZRegS tmpLog2_e(log2_e.getIdx());

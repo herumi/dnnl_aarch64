@@ -48,7 +48,7 @@
 // l2 :7MiB / 12core -  l1 : 64 * 2(inclusive cache) ?
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 
 namespace mkldnn {
 namespace impl {

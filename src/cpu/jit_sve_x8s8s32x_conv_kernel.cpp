@@ -52,7 +52,7 @@ using namespace mkldnn::impl::utils;
 using namespace Xbyak;
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 
 namespace {
 void pick_loop_order(jit_conv_conf_t &jcp, int nthr)

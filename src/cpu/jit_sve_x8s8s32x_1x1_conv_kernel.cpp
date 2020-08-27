@@ -55,7 +55,7 @@ using namespace mkldnn::impl::utils;
 using namespace Xbyak;
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 
 bool jit_sve_x8s8s32x_1x1_conv_kernel::maybe_eltwise(int position)
 {

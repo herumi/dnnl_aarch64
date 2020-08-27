@@ -111,8 +111,8 @@ L(l24);
     add(A, 0x10);
     mov(I, M);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-    xa_->asr(Xbyak::Xbyak_aarch64::XReg(I.getIdx()), Xbyak::Xbyak_aarch64::XReg(I.getIdx()), 0x3);
-    xa_->cmp(Xbyak::Xbyak_aarch64::XReg(I.getIdx()), 0);
+    xa_->asr(Xbyak_aarch64::XReg(I.getIdx()), Xbyak_aarch64::XReg(I.getIdx()), 0x3);
+    xa_->cmp(Xbyak_aarch64::XReg(I.getIdx()), 0);
 #else
     sar(I, 0x3);
 #endif
@@ -217,8 +217,8 @@ L(l1a8);
     add(A, 0x8);
     mov(I, M);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-    xa_->asr(Xbyak::Xbyak_aarch64::XReg(I.getIdx()), Xbyak::Xbyak_aarch64::XReg(I.getIdx()), 0x3);
-    xa_->cmp(Xbyak::Xbyak_aarch64::XReg(I.getIdx()), 0);
+    xa_->asr(Xbyak_aarch64::XReg(I.getIdx()), Xbyak_aarch64::XReg(I.getIdx()), 0x3);
+    xa_->cmp(Xbyak_aarch64::XReg(I.getIdx()), 0);
 #else
     sar(I, 0x3);
 #endif
@@ -309,8 +309,8 @@ L(l2e0);
     add(A, 0x4);
     mov(I, M);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-    xa_->asr(Xbyak::Xbyak_aarch64::XReg(I.getIdx()), Xbyak::Xbyak_aarch64::XReg(I.getIdx()), 0x3);
-    xa_->cmp(Xbyak::Xbyak_aarch64::XReg(I.getIdx()), 0);
+    xa_->asr(Xbyak_aarch64::XReg(I.getIdx()), Xbyak_aarch64::XReg(I.getIdx()), 0x3);
+    xa_->cmp(Xbyak_aarch64::XReg(I.getIdx()), 0);
 #else
     sar(I, 0x3);
 #endif
@@ -401,8 +401,8 @@ L(l40c);
     add(A, 0x2);
     mov(LDA3, M);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-    xa_->asr(Xbyak::Xbyak_aarch64::XReg(LDA3.getIdx()), Xbyak::Xbyak_aarch64::XReg(LDA3.getIdx()), 0x3);
-    xa_->cmp(Xbyak::Xbyak_aarch64::XReg(LDA3.getIdx()), 0);
+    xa_->asr(Xbyak_aarch64::XReg(LDA3.getIdx()), Xbyak_aarch64::XReg(LDA3.getIdx()), 0x3);
+    xa_->cmp(Xbyak_aarch64::XReg(LDA3.getIdx()), 0);
 #else
     sar(LDA3, 0x3);
 #endif

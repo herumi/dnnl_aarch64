@@ -186,8 +186,8 @@ void jit_avx512_core_gemm_bf16bf16f32_kern::innerloop(int unroll_m,
 
     mov(LoopCount_, K_);
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-    xa_->asr(Xbyak::Xbyak_aarch64::XReg(LoopCount_.getIdx()), Xbyak::Xbyak_aarch64::XReg(LoopCount_.getIdx()), 0x3);
-    xa_->cmp(Xbyak::Xbyak_aarch64::XReg(LoopCount_.getIdx()), 0);
+    xa_->asr(Xbyak_aarch64::XReg(LoopCount_.getIdx()), Xbyak_aarch64::XReg(LoopCount_.getIdx()), 0x3);
+    xa_->cmp(Xbyak_aarch64::XReg(LoopCount_.getIdx()), 0);
 #else
     sar(LoopCount_, 3);
 #endif

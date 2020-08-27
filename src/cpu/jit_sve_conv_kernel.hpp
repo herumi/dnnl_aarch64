@@ -54,7 +54,7 @@ namespace impl {
 namespace cpu {
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 /* Get vector offsets, ofs / VL(VL: 512bits = 64Bytes) */
 #define VL_OFS(ofs) ((ofs)>>6)
 

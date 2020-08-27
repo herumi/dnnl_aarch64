@@ -88,21 +88,21 @@ namespace {
 #ifndef CPU_JIT_AVX2_GENERATOR_HPP
 #define CPU_JIT_AVX2_GENERATOR_HPP
 // Callee-saved registers
-  constexpr Xbyak::Xbyak_aarch64::Operand::Code abi_save_gpr_regs_aarch64[] = { Xbyak::Xbyak_aarch64::Operand::X19,
-    Xbyak::Xbyak_aarch64::Operand::X20, Xbyak::Xbyak_aarch64::Operand::X21, Xbyak::Xbyak_aarch64::Operand::X22,
-    Xbyak::Xbyak_aarch64::Operand::X23, Xbyak::Xbyak_aarch64::Operand::X24, Xbyak::Xbyak_aarch64::Operand::X25,
-    Xbyak::Xbyak_aarch64::Operand::X26, Xbyak::Xbyak_aarch64::Operand::X27, Xbyak::Xbyak_aarch64::Operand::X28 };
+  constexpr Xbyak_aarch64::Operand::Code abi_save_gpr_regs_aarch64[] = { Xbyak_aarch64::Operand::X19,
+    Xbyak_aarch64::Operand::X20, Xbyak_aarch64::Operand::X21, Xbyak_aarch64::Operand::X22,
+    Xbyak_aarch64::Operand::X23, Xbyak_aarch64::Operand::X24, Xbyak_aarch64::Operand::X25,
+    Xbyak_aarch64::Operand::X26, Xbyak_aarch64::Operand::X27, Xbyak_aarch64::Operand::X28 };
 
 // See "Procedure Call Standsard for the ARM 64-bit Architecture (AArch64)"
-static const Xbyak::Xbyak_aarch64::XReg abi_param1_aarch64(Xbyak::Xbyak_aarch64::Operand::X0),
-        abi_param2_aarch64(Xbyak::Xbyak_aarch64::Operand::X1),
-        abi_param3_aarch64(Xbyak::Xbyak_aarch64::Operand::X2),
-        abi_param4_aarch64(Xbyak::Xbyak_aarch64::Operand::X3),
-        abi_param5_aarch64(Xbyak::Xbyak_aarch64::Operand::X4),
-        abi_param6_aarch64(Xbyak::Xbyak_aarch64::Operand::X5),
-        abi_param7_aarch64(Xbyak::Xbyak_aarch64::Operand::X6),
-        abi_param8_aarch64(Xbyak::Xbyak_aarch64::Operand::X7),
-        abi_not_param1_aarch64(Xbyak::Xbyak_aarch64::Operand::X15); // Fujitsu uses X15 on A64FX as
+static const Xbyak_aarch64::XReg abi_param1_aarch64(Xbyak_aarch64::Operand::X0),
+        abi_param2_aarch64(Xbyak_aarch64::Operand::X1),
+        abi_param3_aarch64(Xbyak_aarch64::Operand::X2),
+        abi_param4_aarch64(Xbyak_aarch64::Operand::X3),
+        abi_param5_aarch64(Xbyak_aarch64::Operand::X4),
+        abi_param6_aarch64(Xbyak_aarch64::Operand::X5),
+        abi_param7_aarch64(Xbyak_aarch64::Operand::X6),
+        abi_param8_aarch64(Xbyak_aarch64::Operand::X7),
+        abi_not_param1_aarch64(Xbyak_aarch64::Operand::X15); // Fujitsu uses X15 on A64FX as
                                              // abi_not_param1 on x64.
 
 #endif //#ifndef CPU_JIT_AVX2_GENERATOR_HPP
@@ -162,7 +162,7 @@ inline unsigned int get_A64FX_cache_size_aarch64(int level, bool per_core = true
 } // namespace
 #endif
 
-class jit_generator_aarch64 : public Xbyak::Xbyak_aarch64::CodeGenerator
+class jit_generator_aarch64 : public Xbyak_aarch64::CodeGenerator
 {
 private:
     const size_t xmm_len = 16;
@@ -213,11 +213,11 @@ public:
     };
 
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-    Xbyak::Xbyak_aarch64::XReg param1 = abi_param1_aarch64;
+    Xbyak_aarch64::XReg param1 = abi_param1_aarch64;
     const int EVEX_max_8b_offt = 0x200;
 //    const Xbyak::Reg64 reg_EVEX_max_8b_offt = x5;
 
-    class XRegValue : public Xbyak::Xbyak_aarch64::XReg {
+    class XRegValue : public Xbyak_aarch64::XReg {
 public:
     int64_t value_;
     explicit XRegValue(uint32_t idx, int64_t value) : XReg(idx), value_(value) {}
@@ -243,8 +243,8 @@ public:
             st4((v12.d - v15.d)[0], post_ptr(x9, vreg_len_preserve*4));
         }
         for (size_t i = 0; i < num_abi_save_gpr_regs; i += 2) {
-            stp(Xbyak::Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i]),
-                    Xbyak::Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i + 1]), post_ptr(x9, xreg_len*2));
+            stp(Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i]),
+                    Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i + 1]), post_ptr(x9, xreg_len*2));
     }
     }
 #else
@@ -306,8 +306,8 @@ public:
         }
 
         for (size_t i = 0; i < num_abi_save_gpr_regs; i += 2) {
-            ldp(Xbyak::Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i]),
-                    Xbyak::Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i + 1]), post_ptr(x9, xreg_len*2));
+            ldp(Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i]),
+                    Xbyak_aarch64::XReg(abi_save_gpr_regs_aarch64[i + 1]), post_ptr(x9, xreg_len*2));
         }
 
         add(sp, sp, static_cast<int64_t>(preserved_stack_size) - 16);
@@ -337,22 +337,22 @@ public:
 #ifdef DNNL_INDIRECT_JIT_AARCH64
     /*
       template <typename T>
-      Xbyak::Xbyak_aarch64::Adr EVEX_compress_addr(Xbyak::Xbyak_aarch64::XReg base,
+      Xbyak_aarch64::Adr EVEX_compress_addr(Xbyak_aarch64::XReg base,
           T raw_offt, bool bcast = false)
       {
         return Adr(BASE_ONLY);
       }
     */
 
-    Xbyak::Xbyak_aarch64::Adr make_safe_addr(const Xbyak::Xbyak_aarch64::XReg &reg_out, size_t offt,
-            const Xbyak::Xbyak_aarch64::XReg &tmp_reg, bool bcast = false) {
+    Xbyak_aarch64::Adr make_safe_addr(const Xbyak_aarch64::XReg &reg_out, size_t offt,
+            const Xbyak_aarch64::XReg &tmp_reg, bool bcast = false) {
 
         assert(NULL);
         return ptr(x0);
     }
 
-    Xbyak::Xbyak_aarch64::Adr EVEX_compress_addr_safe(const Xbyak::Xbyak_aarch64::XReg &base, size_t raw_offt,
-            const Xbyak::Xbyak_aarch64::XReg &reg_offt, bool bcast = false) {
+    Xbyak_aarch64::Adr EVEX_compress_addr_safe(const Xbyak_aarch64::XReg &base, size_t raw_offt,
+            const Xbyak_aarch64::XReg &reg_offt, bool bcast = false) {
 
         assert(NULL);
         return ptr(x0);
@@ -414,7 +414,7 @@ public:
     // Disallow char-based labels completely
     void L(const char *label) = delete;
     void L(xa::Label &label) {
-        Xbyak::Xbyak_aarch64::CodeGenerator::L(label);
+        Xbyak_aarch64::CodeGenerator::L(label);
     }
 
     void L_aligned(
@@ -425,104 +425,104 @@ public:
 
 #ifdef DNNL_INDIRECT_JIT_AARCH64
     // WREG, XREG, VREG, ZREG
-    void uni_vpxor(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
-            const Xbyak::Xbyak_aarch64::QReg &op) {
+    void uni_vpxor(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
+            const Xbyak_aarch64::QReg &op) {
         assert(NULL);
     }
-    void uni_vpxor(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
-            const Xbyak::Xbyak_aarch64::ZReg &op) {
-        assert(NULL);
-    }
-
-    void uni_vmovss(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::QReg &x) {
-        assert(NULL);
-    }
-    void uni_vmovss(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::ZReg &x) {
-        assert(NULL);
-    }
-    void uni_vmovss(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Xbyak_aarch64::Adr &addr) {
-        assert(NULL);
-    }
-    void uni_vmovss(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Xbyak_aarch64::Adr &addr) {
+    void uni_vpxor(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
+            const Xbyak_aarch64::ZReg &op) {
         assert(NULL);
     }
 
-    void uni_vmovsd(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::QReg &x) {
+    void uni_vmovss(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::QReg &x) {
         assert(NULL);
     }
-    void uni_vmovsd(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::ZReg &x) {
+    void uni_vmovss(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::ZReg &x) {
         assert(NULL);
     }
-    void uni_vmovsd(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Xbyak_aarch64::Adr &addr) {
+    void uni_vmovss(const Xbyak_aarch64::QReg &x, const Xbyak_aarch64::Adr &addr) {
         assert(NULL);
     }
-    void uni_vmovsd(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Xbyak_aarch64::Adr &addr) {
-        assert(NULL);
-    }
-
-    void uni_vmovdqu(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::QReg &x) {
-        assert(NULL);
-    }
-    void uni_vmovdqu(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::ZReg &x) {
+    void uni_vmovss(const Xbyak_aarch64::ZReg &x, const Xbyak_aarch64::Adr &addr) {
         assert(NULL);
     }
 
-    void uni_vmovdqu(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Xbyak_aarch64::Adr &addr) {
+    void uni_vmovsd(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::QReg &x) {
         assert(NULL);
     }
-    void uni_vmovdqu(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Xbyak_aarch64::Adr &addr) {
+    void uni_vmovsd(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::ZReg &x) {
         assert(NULL);
     }
-
-    void uni_vmovups(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::QReg &x) {
+    void uni_vmovsd(const Xbyak_aarch64::QReg &x, const Xbyak_aarch64::Adr &addr) {
         assert(NULL);
     }
-    void uni_vmovups(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::ZReg &x) {
-        assert(NULL);
-    }
-
-    void uni_vmovups(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
-        assert(NULL);
-    }
-    void uni_vmovups(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+    void uni_vmovsd(const Xbyak_aarch64::ZReg &x, const Xbyak_aarch64::Adr &addr) {
         assert(NULL);
     }
 
-    void uni_vmovntps(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::QReg &x) {
+    void uni_vmovdqu(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::QReg &x) {
         assert(NULL);
     }
-    void uni_vmovntps(const Xbyak::Xbyak_aarch64::Adr &addr, const Xbyak::Xbyak_aarch64::ZReg &x) {
-        assert(NULL);
-    }
-
-    void uni_vbroadcastss(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
-        assert(NULL);
-    }
-    void uni_vbroadcastss(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+    void uni_vmovdqu(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::ZReg &x) {
         assert(NULL);
     }
 
-    void uni_vpbroadcastd(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+    void uni_vmovdqu(const Xbyak_aarch64::QReg &x, const Xbyak_aarch64::Adr &addr) {
         assert(NULL);
     }
-    void uni_vpbroadcastd(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
-        assert(NULL);
-    }
-
-    void uni_vrcpss(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
-        assert(NULL);
-    }
-    void uni_vrcpss(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2) {
-        assert(NULL);
-    }
-    void uni_vrcpss(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Xbyak_aarch64::Adr &op) {
+    void uni_vmovdqu(const Xbyak_aarch64::ZReg &x, const Xbyak_aarch64::Adr &addr) {
         assert(NULL);
     }
 
-    void uni_vrcpps(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+    void uni_vmovups(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::QReg &x) {
         assert(NULL);
     }
-    void uni_vrcpps(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+    void uni_vmovups(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::ZReg &x) {
+        assert(NULL);
+    }
+
+    void uni_vmovups(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vmovups(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+
+    void uni_vmovntps(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::QReg &x) {
+        assert(NULL);
+    }
+    void uni_vmovntps(const Xbyak_aarch64::Adr &addr, const Xbyak_aarch64::ZReg &x) {
+        assert(NULL);
+    }
+
+    void uni_vbroadcastss(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vbroadcastss(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+
+    void uni_vpbroadcastd(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vpbroadcastd(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+
+    void uni_vrcpss(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vrcpss(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::QReg &x2) {
+        assert(NULL);
+    }
+    void uni_vrcpss(const Xbyak_aarch64::ZReg &x, const Xbyak_aarch64::Adr &op) {
+        assert(NULL);
+    }
+
+    void uni_vrcpps(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vrcpps(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
         assert(NULL);
     }
 
@@ -530,13 +530,13 @@ public:
         assert(NULL);
     }
 
-    void uni_vdivps(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op1,
-            const Xbyak::Operand &op2, const Xbyak::Xbyak_aarch64::QReg &buf) {
+    void uni_vdivps(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op1,
+            const Xbyak::Operand &op2, const Xbyak_aarch64::QReg &buf) {
         assert(NULL);
     }
 
-    void uni_vdivps(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
-            const Xbyak::Operand &op2, const Xbyak::Xbyak_aarch64::ZReg &buf) {
+    void uni_vdivps(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
+            const Xbyak::Operand &op2, const Xbyak_aarch64::ZReg &buf) {
         assert(NULL);
     }
 
@@ -548,11 +548,11 @@ public:
         assert(NULL);
     }
 
-    void uni_vpsignd(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vpsignd(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
-    void uni_vpsignd(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vpsignd(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
@@ -565,13 +565,13 @@ public:
         assert(NULL);
     }
 
-    void uni_vsubps(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op1,
-            const Xbyak::Operand &op2, const Xbyak::Xbyak_aarch64::QReg &buf) {
+    void uni_vsubps(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op1,
+            const Xbyak::Operand &op2, const Xbyak_aarch64::QReg &buf) {
         assert(NULL);
     }
 
-    void uni_vsubps(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
-            const Xbyak::Operand &op2, const Xbyak::Xbyak_aarch64::ZReg &buf) {
+    void uni_vsubps(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
+            const Xbyak::Operand &op2, const Xbyak_aarch64::ZReg &buf) {
         assert(NULL);
     }
 
@@ -582,73 +582,73 @@ public:
     void uni_vmulss() {
         assert(NULL);
     }
-    void uni_vmulss(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
-            const Xbyak::Xbyak_aarch64::Adr &op2) {
+    void uni_vmulss(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
+            const Xbyak_aarch64::Adr &op2) {
         assert(NULL);
     }
-    void uni_vmulss(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
-            const Xbyak::Xbyak_aarch64::ZReg &op2) {
-        assert(NULL);
-    }
-
-    void uni_vfmadd213ps(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
-            const Xbyak::Operand &op) {
-        assert(NULL);
-    }
-    void uni_vfmadd213ps(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
-            const Xbyak::Operand &op) {
+    void uni_vmulss(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op1,
+            const Xbyak_aarch64::ZReg &op2) {
         assert(NULL);
     }
 
-    void uni_vfmadd213ss(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vfmadd213ps(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
-    void uni_vfmadd213ss(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vfmadd213ps(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
 
-    void uni_vfmadd231ps(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vfmadd213ss(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
-    void uni_vfmadd231ps(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
-            const Xbyak::Operand &op) {
-        assert(NULL);
-    }
-    void uni_vfmadd231ss(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
-            const Xbyak::Operand &op) {
-        assert(NULL);
-    }
-    void uni_vfmadd231ss(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vfmadd213ss(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
 
-    void uni_vfnmadd231ps(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vfmadd231ps(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
+            const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vfmadd231ps(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
+            const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vfmadd231ss(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
+            const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+    void uni_vfmadd231ss(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
+            const Xbyak::Operand &op) {
+        assert(NULL);
+    }
+
+    void uni_vfnmadd231ps(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_vfnmadd231ps(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vfnmadd231ps(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
 
-    void uni_vsqrtps(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+    void uni_vsqrtps(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
         assert(NULL);
     }
-    void uni_vsqrtps(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+    void uni_vsqrtps(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
         assert(NULL);
     }
 
-    void uni_vpaddd(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vpaddd(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
-    void uni_vpaddd(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vpaddd(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
         assert(NULL);
     }
@@ -662,20 +662,20 @@ public:
     }
 
     void uni_vpslld(
-            const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op, const int imm) {
+            const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op, const int imm) {
         assert(NULL);
     }
     void uni_vpslld(
-            const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op, const int imm) {
+            const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op, const int imm) {
         assert(NULL);
     }
 
     void uni_vpsrld(
-            const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op, const int imm) {
+            const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op, const int imm) {
         assert(NULL);
     }
     void uni_vpsrld(
-            const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op, const int imm) {
+            const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op, const int imm) {
 
         assert(NULL);
     }
@@ -690,152 +690,152 @@ public:
         assert(NULL);
     }
 
-    void uni_vcmpgtps(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vcmpgtps(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
 
 
         assert(NULL);
     }
 
-    void uni_vcmpgtps(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vcmpgtps(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
 
 
         assert(NULL);
     }
 
-    void uni_vcmpgeps(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vcmpgeps(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
 
 
         assert(NULL);
     }
 
-    void uni_vcmpgeps(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vcmpgeps(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_vtestps(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Operand &op) {
+    void uni_vtestps(const Xbyak_aarch64::QReg &x1, const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_vtestps(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Operand &op) {
+    void uni_vtestps(const Xbyak_aarch64::ZReg &x1, const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_vblendvps(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
-            const Xbyak::Operand &op, const Xbyak::Xbyak_aarch64::QReg &msk) {
+    void uni_vblendvps(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
+            const Xbyak::Operand &op, const Xbyak_aarch64::QReg &msk) {
 
         assert(NULL);
     }
-    void uni_vblendvps(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
-            const Xbyak::Operand &op, const Xbyak::Xbyak_aarch64::ZReg &msk) {
+    void uni_vblendvps(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
+            const Xbyak::Operand &op, const Xbyak_aarch64::ZReg &msk) {
 
         assert(NULL);
     }
 
     void uni_vroundps(
-            const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op, const int imm) {
+            const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op, const int imm) {
 
 
         assert(NULL);
     }
     void uni_vroundps(
-            const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op, const int imm) {
+            const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op, const int imm) {
 
         assert(NULL);
     }
 
-    void uni_vcvtps2dq(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
+    void uni_vcvtps2dq(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
 
         assert(NULL);
     }
-    void uni_vcvtps2dq(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
-
-        assert(NULL);
-    }
-
-    void uni_vcvtdq2ps(const Xbyak::Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
-
-        assert(NULL);
-    }
-    void uni_vcvtdq2ps(const Xbyak::Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
+    void uni_vcvtps2dq(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_vmovmskps(const Xbyak::Reg &x1, const Xbyak::Xbyak_aarch64::QReg &x2) {
+    void uni_vcvtdq2ps(const Xbyak_aarch64::QReg &x, const Xbyak::Operand &op) {
 
         assert(NULL);
     }
-    void uni_vmovmskps(const Xbyak::Reg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2) {
+    void uni_vcvtdq2ps(const Xbyak_aarch64::ZReg &x, const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_vpackssdw(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vmovmskps(const Xbyak::Reg &x1, const Xbyak_aarch64::QReg &x2) {
+
+        assert(NULL);
+    }
+    void uni_vmovmskps(const Xbyak::Reg &x1, const Xbyak_aarch64::ZReg &x2) {
+
+        assert(NULL);
+    }
+
+    void uni_vpackssdw(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
 
 
         assert(NULL);
     }
-    void uni_vpackssdw(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vpackssdw(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_vpackuswb(const Xbyak::Xbyak_aarch64::QReg &x1, const Xbyak::Xbyak_aarch64::QReg &x2,
+    void uni_vpackuswb(const Xbyak_aarch64::QReg &x1, const Xbyak_aarch64::QReg &x2,
             const Xbyak::Operand &op) {
 
         assert(NULL);
     }
-    void uni_vpackuswb(const Xbyak::Xbyak_aarch64::ZReg &x1, const Xbyak::Xbyak_aarch64::ZReg &x2,
+    void uni_vpackuswb(const Xbyak_aarch64::ZReg &x1, const Xbyak_aarch64::ZReg &x2,
             const Xbyak::Operand &op) {
 
         assert(NULL);
     }
 
-    void uni_ld(const Xbyak::Xbyak_aarch64::ZRegS &z1s, const Xbyak::Xbyak_aarch64::AdrScImm &addr) {
+    void uni_ld(const Xbyak_aarch64::ZRegS &z1s, const Xbyak_aarch64::AdrScImm &addr) {
         assert(NULL);
     }
 
 
-    void uni_ld(const Xbyak::Xbyak_aarch64::VReg4S &v1s4, const Xbyak::Xbyak_aarch64::AdrScImm &addr) {
+    void uni_ld(const Xbyak_aarch64::VReg4S &v1s4, const Xbyak_aarch64::AdrScImm &addr) {
         assert(NULL);
     }
 
-    void uni_st(const Xbyak::Xbyak_aarch64::ZRegS &z1s, const Xbyak::Xbyak_aarch64::AdrScImm &addr) {
+    void uni_st(const Xbyak_aarch64::ZRegS &z1s, const Xbyak_aarch64::AdrScImm &addr) {
         assert(NULL);
     }
 
-    void uni_st(const Xbyak::Xbyak_aarch64::VReg4S &v1s4, const Xbyak::Xbyak_aarch64::AdrScImm &addr) {
+    void uni_st(const Xbyak_aarch64::VReg4S &v1s4, const Xbyak_aarch64::AdrScImm &addr) {
         assert(NULL);
     }
 
-    void uni_vcvts2f(const Xbyak::Xbyak_aarch64::ZRegS &z1s, const Xbyak::Xbyak_aarch64::ZRegS &z2s,
-            const Xbyak::Xbyak_aarch64::_PReg &p1) {
+    void uni_vcvts2f(const Xbyak_aarch64::ZRegS &z1s, const Xbyak_aarch64::ZRegS &z2s,
+            const Xbyak_aarch64::_PReg &p1) {
         assert(NULL);
     }
 
-    void uni_vcvts2f(const Xbyak::Xbyak_aarch64::VReg4S &v1, const Xbyak::Xbyak_aarch64::VReg4S &v2,
-            const Xbyak::Xbyak_aarch64::_PReg &p1) {
+    void uni_vcvts2f(const Xbyak_aarch64::VReg4S &v1, const Xbyak_aarch64::VReg4S &v2,
+            const Xbyak_aarch64::_PReg &p1) {
         assert(NULL);
     }
 
     void uni_vcvtf2s(
-            const Xbyak::Xbyak_aarch64::ZRegS &z1s, const Xbyak::Xbyak_aarch64::ZRegS &z2s, const Xbyak::Xbyak_aarch64::_PReg &p1) {
+            const Xbyak_aarch64::ZRegS &z1s, const Xbyak_aarch64::ZRegS &z2s, const Xbyak_aarch64::_PReg &p1) {
     }
 
-    void uni_vcvtf2s(const Xbyak::Xbyak_aarch64::VReg4S &v1, const Xbyak::Xbyak_aarch64::VReg4S &v2,
-            const Xbyak::Xbyak_aarch64::PReg &p1) {}
+    void uni_vcvtf2s(const Xbyak_aarch64::VReg4S &v1, const Xbyak_aarch64::VReg4S &v2,
+            const Xbyak_aarch64::PReg &p1) {}
 
 
-            void mul_by_const(const Xbyak::Xbyak_aarch64::XReg &out, const Xbyak::Reg64 &tmp,
+            void mul_by_const(const Xbyak_aarch64::XReg &out, const Xbyak::Reg64 &tmp,
                     int value) {
         // Generates a shift + add sequence for multiplicating contents of the
         // out register by a known JIT-time value. Clobbers the tmp register.
@@ -1428,7 +1428,7 @@ public:
 
 public:
     jit_generator_aarch64(void *code_ptr = nullptr, size_t code_size = 256 * 1024)
-        : Xbyak::Xbyak_aarch64::CodeGenerator(code_size, code_ptr) {
+        : Xbyak_aarch64::CodeGenerator(code_size, code_ptr) {
 #ifdef DNNL_INDIRECT_JIT_AARCH64
         assert(!(num_abi_save_gpr_regs % 2));
 #endif
@@ -1441,7 +1441,7 @@ public:
     // XXX: use normal_case name and update all callees (?)
 
     const uint32_t *getCode32() {
-        const uint32_t *code = (const uint32_t*)Xbyak::Xbyak_aarch64::CodeGenerator::getCode();
+        const uint32_t *code = (const uint32_t*)Xbyak_aarch64::CodeGenerator::getCode();
         register_code(code);
 
         if (mkldnn_jit_dump())

@@ -68,7 +68,7 @@ namespace cpu {
 namespace {
 
 #ifdef DNNL_INDIRECT_JIT_AARCH64
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 #endif
 
 typedef enum {

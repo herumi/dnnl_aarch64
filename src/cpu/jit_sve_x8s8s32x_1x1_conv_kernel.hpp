@@ -48,7 +48,7 @@ namespace impl {
 namespace cpu {
 
 
-namespace xa = Xbyak::Xbyak_aarch64;
+namespace xa = Xbyak_aarch64;
 
 struct jit_sve_x8s8s32x_1x1_conv_kernel: public jit_generator {
     DECLARE_CPU_JIT_AUX_FUNCTIONS(jit_sve_x8s8s32x_1x1_conv_fwd_ker_t)

@@ -82,7 +82,7 @@
 #undef s_addr
 #endif
 
-using namespace Xbyak::Xbyak_aarch64;
+using namespace Xbyak_aarch64;
 using namespace mkldnn::impl::types;
 
 namespace mkldnn {
@@ -202,44 +202,44 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         // i_off :      Temporal num of offset data.
         // Current position = reg_ptr_in + (reg_off_in + i_off) * itype_sz
         assert(!(i_off % simd_w));
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_in, i_off / simd_w, MUL_VL);
+        return Xbyak_aarch64::ptr(reg_ptr_in, i_off / simd_w, MUL_VL);
     }
 
     AdrScImm i_addr(const VReg4S &v, int i_off, int simd_w) {
         assert(!(i_off % simd_w));
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_in, i_off / simd_w, MUL_VL);
+        return Xbyak_aarch64::ptr(reg_ptr_in, i_off / simd_w, MUL_VL);
     }
 
     AdrImm i_addr(int i_off) {
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_in, i_off * itype_sz);
+        return Xbyak_aarch64::ptr(reg_ptr_in, i_off * itype_sz);
     }
 
     AdrScImm o_addr(const ZRegS &v, int o_off, int simd_w) {
         assert(!(o_off % simd_w));
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_out, o_off / simd_w, MUL_VL);
+        return Xbyak_aarch64::ptr(reg_ptr_out, o_off / simd_w, MUL_VL);
     }
 
     AdrScImm o_addr(const VReg4S &v, int o_off, int simd_w) {
         assert(!(o_off % simd_w));
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_out, o_off / simd_w, MUL_VL);
+        return Xbyak_aarch64::ptr(reg_ptr_out, o_off / simd_w, MUL_VL);
     }
 
     AdrImm o_addr(int o_off) {
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_out, o_off * otype_sz);
+        return Xbyak_aarch64::ptr(reg_ptr_out, o_off * otype_sz);
     }
 
     AdrScImm s_addr(const ZRegS &v, int s_off, int simd_w) {
         assert(!(s_off % simd_w));
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_out, s_off / simd_w, MUL_VL);
+        return Xbyak_aarch64::ptr(reg_ptr_out, s_off / simd_w, MUL_VL);
     }
 
     AdrScImm s_addr(const VReg4S &v, int s_off, int simd_w) {
         assert(!(s_off % simd_w));
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_out, s_off / simd_w, MUL_VL);
+        return Xbyak_aarch64::ptr(reg_ptr_out, s_off / simd_w, MUL_VL);
     }
 
     AdrImm s_addr(int s_off) {
-        return Xbyak::Xbyak_aarch64::ptr(reg_ptr_scale, s_off * stype_sz);
+        return Xbyak_aarch64::ptr(reg_ptr_scale, s_off * stype_sz);
     }
     void step(int off, int prev_i_off, int prev_o_off, int prev_s_off,
             int &i_off, int &o_off, int &s_off, int step_size = 1) {
@@ -285,16 +285,16 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         using namespace data_type;
 
         // Load 512bits(32bits x 16words) = 16x4 words = 64 words.
-        ld4w(z0.s, p0 / Xbyak::Xbyak_aarch64::T_z,
+        ld4w(z0.s, p0 / Xbyak_aarch64::T_z,
                 ptr(reg_ptr_in, reg_off_in, LSL, 2));
 
         // Convert FP <-> Int, if needed.
         for (int i = 0; i < 4; i++) {
             if (prb_.itype == s32 && prb_.otype == f32) {
-                scvtf(ZReg(i).s, p0 / Xbyak::Xbyak_aarch64::T_m, ZReg(i).s);
+                scvtf(ZReg(i).s, p0 / Xbyak_aarch64::T_m, ZReg(i).s);
             } else if (prb_.itype == f32 && prb_.otype == s32) {
-                frinti(ZReg(i).s, p0 / Xbyak::Xbyak_aarch64::T_m, ZReg(i).s);
-                fcvtzs(ZReg(i).s, p0 / Xbyak::Xbyak_aarch64::T_m, ZReg(i).s);
+                frinti(ZReg(i).s, p0 / Xbyak_aarch64::T_m, ZReg(i).s);
+                fcvtzs(ZReg(i).s, p0 / Xbyak_aarch64::T_m, ZReg(i).s);
             }
         }
 
@@ -304,7 +304,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         uzp2(z7.s, z2.s, z3.s);
 
         // Store 512bits(32bits x 16words) = 16x4 words = 64 words.
-        st4w(z4.s, p0 / Xbyak::Xbyak_aarch64::T_z,
+        st4w(z4.s, p0 / Xbyak_aarch64::T_z,
                 ptr(reg_ptr_out, reg_off_out, LSL, 2));
     }
 
@@ -943,7 +943,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
                         ld1((xmm_tmp.s4)[0], addr);
                         rsvdOffsetOut += 4;
                         fadd(xmm_tmp.s4, VReg(ur).s4, (xmm_tmp.s4));
-                        Xbyak::Xbyak_aarch64::CodeGenerator::mov(
+                        Xbyak_aarch64::CodeGenerator::mov(
                                 (VReg(ur).s4)[0], (xmm_tmp.s4)[0]);
                     } else {
                         if (prb_.otype == s32) {
@@ -958,7 +958,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
                             assert(!"unsupported o_type");
                         }
                         cvt2ps(xmm_tmp, xmm_tmp, prb_.otype);
-                        Xbyak::Xbyak_aarch64::CodeGenerator::fadd(
+                        Xbyak_aarch64::CodeGenerator::fadd(
                                 VReg(ur).s4, VReg(ur).s4, xmm_tmp.s4);
                     }
                 }
@@ -1054,8 +1054,8 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
     }
 
     void loop_begin(xa::Label &l, XReg reg_cnt, int len) {
-        Xbyak::Xbyak_aarch64::CodeGenerator::mov(reg_cnt, len);
-        Xbyak::Xbyak_aarch64::CodeGenerator::L(l);
+        Xbyak_aarch64::CodeGenerator::mov(reg_cnt, len);
+        Xbyak_aarch64::CodeGenerator::L(l);
     }
 
     void loop_end(xa::Label &l, XReg reg_cnt, int len, int i_step,
@@ -1074,7 +1074,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         if (flag) {
             add_imm(reg_ptr_scale, reg_ptr_scale, s_step * stype_sz, reg_tmp);
         }
-        Xbyak::Xbyak_aarch64::CodeGenerator::sub(reg_cnt, reg_cnt, 1);
+        Xbyak_aarch64::CodeGenerator::sub(reg_cnt, reg_cnt, 1);
         cbnz(reg_cnt, l);
 
         DBG_MSG_JIT_REORDER(sub load addr, iTmp * len);
@@ -1153,23 +1153,23 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
                     // registers.
         if (prb_.scale_type == scale_type_t::COMMON) {
             ldr(reg_tmp,
-                    Xbyak::Xbyak_aarch64::ptr(abi_param1_aarch64,
+                    Xbyak_aarch64::ptr(abi_param1_aarch64,
                             static_cast<int32_t>(
                                     offsetof(call_param_t, scale))));
-            ld1({ xmm_scale.s4 }, Xbyak::Xbyak_aarch64::ptr(reg_tmp));
+            ld1({ xmm_scale.s4 }, Xbyak_aarch64::ptr(reg_tmp));
         } else if (prb_.scale_type == scale_type_t::MANY) {
             ldr(reg_ptr_scale,
-                    Xbyak::Xbyak_aarch64::ptr(abi_param1_aarch64,
+                    Xbyak_aarch64::ptr(abi_param1_aarch64,
                             static_cast<int32_t>(
                                     offsetof(call_param_t, scale))));
         }
         ldr(reg_ptr_in,
-                Xbyak::Xbyak_aarch64::ptr(abi_param1_aarch64,
+                Xbyak_aarch64::ptr(abi_param1_aarch64,
                         static_cast<int32_t>(offsetof(call_param_t,
                                 in)))); // Store base address of input
                                         // data to a register.
         ldr(reg_ptr_out,
-                Xbyak::Xbyak_aarch64::ptr(abi_param1_aarch64,
+                Xbyak_aarch64::ptr(abi_param1_aarch64,
                         static_cast<int32_t>(offsetof(call_param_t,
                                 out)))); // Store base address of output
                                          // data to a register.
