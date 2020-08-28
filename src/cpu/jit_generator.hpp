@@ -33,7 +33,7 @@
 #ifndef CPU_JIT_AVX2_GENERATOR_HPP
 #define CPU_JIT_AVX2_GENERATOR_HPP
 
-#define XBYAK_CODE_PTR uint32
+#define XBYAK_CODE_PTR uint8_t
 
 #include <limits.h>
 #include "cpu_isa_traits.hpp"
@@ -994,31 +994,7 @@ public:
         mov(out, tmp);
     }
 
-    void dump_code32(const Xbyak::XBYAK_CODE_PTR *code) const {
-        if (code) {
-            static int counter = 0;
-#define MAX_FNAME_LEN 256
-            char fname[MAX_FNAME_LEN + 1];
-            snprintf(fname, MAX_FNAME_LEN, "mkldnn_dump_%s.%d.bin", name(),
-                    counter);
-            counter++;
-
-            FILE *fp = mkldnn_fopen(fname, "w+");
-            // Failure to dump code is not fatal
-            if (fp) {
-#ifdef DNNL_INDIRECT_JIT_AARCH64
-                size_t unused = fwrite(code, getSize() * 4, 1, fp);
-#else
-                size_t unused = fwrite(code, getSize(), 1, fp);
-#endif
-                UNUSED(unused);
-                fclose(fp);
-            }
-        }
-#undef MAX_FNAME_LEN
-    }
-
-    void dump_code(const Xbyak::uint8 *code) const {
+    void dump_code(const uint8_t *code) const {
         if (code) {
             static int counter = 0;
 #define MAX_FNAME_LEN 256
@@ -1031,7 +1007,7 @@ public:
 
 	    // Failure to dump code is not fatal
             if (fp) {
-                size_t unused = fwrite(code, getSize()*4, 1, fp);
+                size_t unused = fwrite(code, getSize(), 1, fp);
                 UNUSED(unused);
                 fclose(fp);
             }
@@ -1039,25 +1015,7 @@ public:
 #undef MAX_FNAME_LEN
     }
 
-    void register_code32(const Xbyak::XBYAK_CODE_PTR *code) const {
-#ifdef JIT_PROFILING_VTUNE
-        if (iJIT_IsProfilingActive() == iJIT_SAMPLING_ON) {
-            auto jmethod = iJIT_Method_Load();
-            jmethod.method_id = iJIT_GetNewMethodID();
-            jmethod.method_name = (char *)name();
-            jmethod.class_file_name = NULL;
-            jmethod.source_file_name = (char *)source_file();
-            jmethod.method_load_address = (void *)code;
-            jmethod.method_size = getSize();
-
-            iJIT_NotifyEvent(
-                    iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void *)&jmethod);
-        }
-#endif
-    }
-
-
-    void register_code(const Xbyak::uint8 *code) const {
+    void register_code(const uint8_t *code) const {
 #ifdef JIT_PROFILING_VTUNE
         if (iJIT_IsProfilingActive() == iJIT_SAMPLING_ON) {
             auto jmethod = iJIT_Method_Load();
@@ -1086,16 +1044,9 @@ public:
     virtual const char *name() const = 0;
     virtual const char *source_file() const = 0;
 
-    const uint32_t *getCode32() {
-        const uint32_t *code = (const uint32_t*)xa_->getCode();
-        register_code32(code);
-
-	      if (mkldnn_jit_dump())
-            dump_code32(code);
-
-        return code;
+    const uint8_t *getCodeWrap() {
+        return getCode();
     }
-
 
     // XXX: use normal_case name and update all callees (?)
     const Xbyak::uint8 *getCode() {

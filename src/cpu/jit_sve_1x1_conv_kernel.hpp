@@ -69,7 +69,7 @@ struct jit_sve_1x1_conv_kernel : public jit_generator {
                     this, jcp.eltwise);
 
         this->generate();
-        jit_ker = (void (*)(jit_1x1_conv_call_s *)) this->getCode32();
+        jit_ker = (void (*)(jit_1x1_conv_call_s *)) this->getCodeWrap();
 
     }
 

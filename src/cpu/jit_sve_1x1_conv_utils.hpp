@@ -377,7 +377,7 @@ struct rtus_driver_t: public jit_generator {
 
         postamble();
 
-        this->ker_ = reinterpret_cast<decltype(ker_)>(const_cast<uint32_t*>(this->getCode32()));
+        this->ker_ = reinterpret_cast<decltype(ker_)>(const_cast<uint8_t*>(this->getCodeWrap()));
     }
 };
 

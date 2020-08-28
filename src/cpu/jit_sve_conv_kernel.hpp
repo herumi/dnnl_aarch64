@@ -70,7 +70,7 @@ struct _jit_sve_conv_fwd_kernel : public jit_generator {
                     this, jcp.eltwise);
 
         generate();
-        jit_ker_ = (void (*)(jit_conv_call_s *))getCode32();
+        jit_ker_ = (void (*)(jit_conv_call_s *))getCodeWrap();
     }
 
     ~_jit_sve_conv_fwd_kernel() {
@@ -283,7 +283,7 @@ struct jit_sve_conv_bwd_data_kernel_f32: public jit_generator {
     jit_sve_conv_bwd_data_kernel_f32(jit_conv_conf_t ajcp): jcp(ajcp)
     {
         generate();
-        jit_ker = (void (*)(jit_conv_call_s *))getCode32();
+        jit_ker = (void (*)(jit_conv_call_s *))getCodeWrap();
     }
 
     DECLARE_CPU_JIT_AUX_FUNCTIONS(jit_sve_conv_bwd_data_kernel_f32)
@@ -431,7 +431,7 @@ struct jit_sve_conv_bwd_weights_kernel_f32 : public jit_generator {
         : jit_generator(nullptr, 1024*1024), jcp(ajcp)
     {
         generate();
-        jit_ker = (void (*)(jit_conv_call_s *))getCode32();
+        jit_ker = (void (*)(jit_conv_call_s *))getCodeWrap();
     }
 
     DECLARE_CPU_JIT_AUX_FUNCTIONS(jit_sve_conv_bwd_weights_kernel_f32)

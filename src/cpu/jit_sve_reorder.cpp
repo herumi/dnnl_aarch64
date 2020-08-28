@@ -1191,7 +1191,7 @@ struct jit_uni_reorder_kernel_f32 : public kernel_t,
         postamble();
 
         ready();
-        ker_ = (void (*)(const call_param_t *))getCode32();
+        ker_ = (void (*)(const call_param_t *))getCodeWrap();
 
         rsvdOffsetIn = 0xFFFFFFFFFFFFFFFF;
         rsvdOffsetOut = 0xFFFFFFFFFFFFFFFF;

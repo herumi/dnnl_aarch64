@@ -33,7 +33,7 @@
 #ifndef CPU_JIT_AVX2_GENERATOR_HPP_AARCH64
 #define CPU_JIT_AVX2_GENERATOR_HPP_AARCH64
 
-#define XBYAK_CODE_PTR uint32
+#define XBYAK_CODE_PTR uint8_t
 
 #include "cpu_isa_traits.hpp"
 #include <limits.h>
@@ -1385,7 +1385,7 @@ public:
     }
 #endif // #ifdef DNNL_INDIRECT_JIT_AARCH64
 
-    void dump_code(const Xbyak::XBYAK_CODE_PTR *code) const {
+    void dump_code(const uint8_t *code) const {
         if (code) {
             static int counter = 0;
 #define MAX_FNAME_LEN 256
@@ -1397,11 +1397,7 @@ public:
             FILE *fp = mkldnn_fopen(fname, "w+");
             // Failure to dump code is not fatal
             if (fp) {
-#ifdef DNNL_INDIRECT_JIT_AARCH64
-                size_t unused = fwrite(code, getSize() * 4, 1, fp);
-#else
                 size_t unused = fwrite(code, getSize(), 1, fp);
-#endif
                 UNUSED(unused);
                 fclose(fp);
             }
@@ -1409,7 +1405,7 @@ public:
 #undef MAX_FNAME_LEN
     }
 
-    void register_code(const Xbyak::XBYAK_CODE_PTR *code) const {
+    void register_code(const uint8_t *code) const {
 #ifdef JIT_PROFILING_VTUNE
         if (iJIT_IsProfilingActive() == iJIT_SAMPLING_ON) {
             auto jmethod = iJIT_Method_Load();
@@ -1440,8 +1436,8 @@ public:
 
     // XXX: use normal_case name and update all callees (?)
 
-    const uint32_t *getCode32() {
-        const uint32_t *code = (const uint32_t*)Xbyak_aarch64::CodeGenerator::getCode();
+    const uint8_t *getCodeWrap() {
+        const uint8_t *code = Xbyak_aarch64::CodeGenerator::getCode();
         register_code(code);
 
         if (mkldnn_jit_dump())
@@ -1454,7 +1450,7 @@ public:
     template <typename F>
     const F getCode() {
         // XXX (Roma): Xbyak code probably has a bug here
-        return (const F)getCode32();
+        return (const F)getCodeWrap();
     }
 
 };
